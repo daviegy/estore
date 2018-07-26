@@ -1,0 +1,202 @@
+﻿@model IEnumerable<SON_eStore.Models.storeSuppliesViewModel>
+    @using SON_eStore.Models
+@{
+    ViewBag.Title = "item_supplies_rpt";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ApplicationDbContext db = new ApplicationDbContext();
+    int counter = 0;
+}
+
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Store Supplies</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">Store Supplies</li>
+    </ol>
+</section>
+<section class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="box box-warning">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Generate Report</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        <button class="btn btn-danger " onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                    </div>
+
+                </div>
+                <div class="box-body">
+                    <form role="form" method="post" action="">
+                        @Html.AntiForgeryToken()
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <label class="control-label" style="font-size:12pt">Date </label> <br>
+                                <div class="input-daterange input-group" id="datepicker">
+                                    <input type="text" placeholder="Start Date(dd-mm-yyyy)" class="input-sm form-control" name="startdate" />
+                                    <span class="input-group-addon">to</span>
+                                    <input type="text" placeholder="End Date(dd-mm-yyyy)" class="input-sm form-control" name="enddate" />
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="form-group">
+                                    <label class="control-label" style="font-size:12pt">Suppliers </label>
+                                    <select  name="supplier" class="form-control select2">
+                                        @{
+                                            var supplier = db.supplier.ToList();
+                                        }
+                                        <option selected="selected" value="">Select Supplier  </option>
+                                        @foreach (var s in supplier)
+                                        {
+                                            <option value="@s.id">@s.supplier_name</option>
+                                        }
+                                    </select>
+                                 
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <br />
+                        <button id="btnExport" formaction="/ExcelReport/item_supplies_rpt" title="Export to excel" class="btn btn-success">Export to Excel &nbsp;<i class="glyphicon glyphicon-export "></i></button>
+                        <button class="btn btn-info" formaction="/printRPT/Print_iTems_supplies">Print &nbsp;&nbsp;<i class="glyphicon glyphicon-print"></i></button>
+                    </form>
+                </div>
+            </div>
+            <div class="panel panel-success">
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table id="table" class="table table-bordered table-striped" style="text-transform:capitalize">
+                            <thead>
+                                <tr>
+                                    <th colspan="8" style="text-align:center; color:red;font-size:x-large">
+                                        ITEMS SUPPLIED INTO STORE
+                                    </th>
+                                </tr>
+                                <tr>
+                                    @*<th>SN</th>*@
+                                    <th>
+                                        S.R.V.No
+                                    </th>
+                                    @*<th>
+                                        ITEM NAME
+                                    </th>*@
+                                    <th>TOTAL NO. OF ITEM SUPPLIED</th>
+                                    @*<th>
+                                        QUANTITY SUPPLIED
+                                    </th>
+                                    <th>
+                                        QUANTITY SUPPLIED (in base unit)
+                                    </th>*@
+                                    <th>
+                                        SUPPLIER
+                                    </th>
+                                    <th>
+                                        SUPPLIED DATE
+                                    </th>
+                                    <th>
+                                        CREATED DATE
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @foreach (var item in Model.Distinct())
+                                {
+                                    counter++;
+                                    <tr>
+                                        @*<td>@counter</td>*@
+                                        <td>
+                                            <a href="/estore/itemsuppliesbysrv/?srv=@item.srv" class="btn btn-default" style="text-decoration:underline">@item.srv</a>
+                                        </td>
+                                        @*<td>
+                                            @item.product_name
+                                        </td>*@
+                                        <td>
+                                            @item.total_item_supplied
+                                        </td>
+                                        @*<td>
+                                            @String.Format("{0:n}", item.qty_supplied)  @item.qty_denomination
+                                        </td>
+                                        <td>
+                                            @String.Format("{0:n}", item.qty_supplied_in_base_unit)  @item.item_base_unit
+                                        </td>*@
+                                        <td>
+                                            @item.supplier_name
+                                        </td>
+                                        <td>
+                                            @{
+                                                var sdt = Convert.ToDateTime(item.supplied_date).ToString("dd MMM, yyy");
+                                            }
+                                            @sdt
+                                        </td>
+                                        <td>
+                                            @{
+                                                var cdt = Convert.ToDateTime(item.Created_date).ToString("dd MMM, yyy");
+                                            }
+                                            @cdt
+                                        </td>
+                                        <td>
+                                            <a href="/estore/itemsuppliesbysrv/?srv=@item.srv" class="btn btn-success">View More...</a>
+                                            <a href="/PrintRPT/Print_Fresh_Items_Supplied_by_srv/?srv=@item.srv" class="btn btn-warning" style="text-decoration:underline">Print</a>
+                                        </td>
+                                    </tr>
+
+                                                }
+                            </tbody>
+                        </table>
+
+
+                    </div>
+                    <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+
+@section scripts{
+
+    <script src="~/Scripts/bootstrap-table.js"></script>
+    <script src="~/Scripts/bootstrap-datepicker.js"></script>
+    <script>
+        $(".input-daterange").datepicker({
+            format: "dd-mm-yyyy",
+            clearBtn: true,
+            autoclose: true,
+            //orientation: "bottom right",
+            todayHighlight: true
+
+        })
+    $('#table').bootstrapTable({
+
+        striped: true,
+        // cardView: true,
+        pagination: true,
+        pageSize: 15,
+        pageList: [15, 25, 50, 100, 200],
+        smartDisplay: false,
+        //showToggle: true,
+        search: true,
+        //showColumns: true,
+        //showRefresh: true,
+        //    border : true
+        //align: 'center',
+        //valign: 'bottom'
+
+    });
+    </script>
+
+}
+
+

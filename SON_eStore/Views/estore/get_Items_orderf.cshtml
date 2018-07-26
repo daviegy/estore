@@ -1,0 +1,182 @@
+﻿@{
+    ViewBag.Title = "get_Items_order";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Items Ordered</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">Items Ordered</li>
+    </ol>
+</section>
+
+<section ng-controller="storeRequestController" class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="col-md-8">
+                <div class="box box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Items Ordered</h3>
+
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>*@
+                        </div>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-md-12 table-responsive">
+                                <table st-table="sModel" st-safe-src="fModel" class="table table-bordered table-striped" style="text-transform:capitalize">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="4" style="text-align:center; color:red;font-size:x-large">Items Requested by '{{sModel[0].department}}{{sModel[0].state_office}}{{sModel[0].regional_office}}' <i class="glyphicon glyphicon-shopping-cart"></i>
+                                            <br />
+                                                {{sModel[0].unit}}
+                                            
+                                                <br />
+                                                <span class="text-success">Store Requisition No.: {{sModel[0].s_R_V_No}}</span>   
+                                            </th>
+                                            <th colspan="2">
+                                                <input st-search="" class="form-control" placeholder="search ..." type="text" />
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th>SRV</th>
+                                            <th>
+                                                Item Name
+                                            </th>
+                                            <th>
+                                                Qty. Requested
+                                            </th>
+                                            @*<th style="text-wrap:normal">
+                                                Qty. Requested<br /> <span class="text-danger">(in base unit)</span> 
+                                            </th>*@
+                                            <th style="text-wrap:normal">
+                                                Qty. Allocated <br /> <span class="text-danger">(in base unit)</span> 
+                                            </th>
+                                            <th><button class="btn btn-danger" title="delete" ng-click="deleteAllBorrowbyOrder(sModel[0].r_order_no)"> Delete All <i class="glyphicon glyphicon-trash"></i></button></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="c in sModel">
+                                            <td>
+                                                {{c.s_R_V_No}}
+                                            </td>
+                                            <td>
+                                                {{c.product_name}}
+                                            </td>
+                                           
+                                            <td>
+                                                {{c.requested_qty_unit_value|number}} {{c.requested_qty_unit|lowercase}}
+                                            </td>
+                                            @*<td class="text-danger text-bold">
+                                                {{c.qty_requested|number}} {{c.item_base_unit|lowercase}}
+                                            </td>*@
+                                            <td class="text-success text-bold">
+                                               {{c.qty_allocated|number}} {{c.item_base_unit|lowercase}}
+
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-warning" title="edit" ng-click="editAllocation(c.r_id)"><i class="glyphicon glyphicon-edit"></i></button>
+                                                <button class="btn btn-danger" title="delete" ng-click="fdeleteAllocation(c.r_id)"><i class="glyphicon glyphicon-trash"></i></button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="6" class="text-center">
+                                                <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                                <button class="btn btn-danger pull-right" onclick="goback()"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>                             
+                            </div>
+                          
+
+                        </div>                        <!-- /.row -->
+                    </div>        <!-- /.box-body -->
+                    <div class="box-footer">
+
+                    </div>
+                </div>
+
+            </div>
+            <div ng-show="showUpallct" class="col-md-4">
+                <div class="box box-info">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Update Qty allocated</h3> <br />
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>*@
+                        </div>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <form name="updateAllct" novalidate ng-submit="fupdateAllocation()">
+                                    <!-- /.col -->
+                                    <span ng-model="id"></span>
+                                    <span ng-model="item_id"></span>
+
+                                    <div class="form-group">
+                                        <label class="control-label">Qty. Allocated <span class="text-danger">*</span></label>
+                                        <input type="number" required class="form-control" placeholder="Quantity allocated" name="qty_allct" ng-model="qty_allct" min="0" />
+                                        <span class="text-danger" ng-show="updateAllct.qty_allct.$invalid">required!</span><br />
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xs-10">
+                                            <button class="btn btn-success btn-block btn-flat" type="submit" ng-disabled="updateAllct.qty_allct.$invalid">
+                                                Update Allocation&nbsp;&nbsp; <i class="glyphicon glyphicon-upload"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+
+                                    <!-- /.col -->
+
+                                </form>
+                            </div>
+
+                        </div>
+                        <!-- /.row -->
+                    </div>
+                    <!-- /.box-body -->
+                    <div class="box-footer">
+                        <b>All fields mark with (<span style="color:red">*</span>), are required!</b>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</section>
+
+@section scripts{
+    <script src="~/Scripts/sweetalert.min.js"></script>
+    <script src="~/Scripts/bootstrap-datepicker.js"></script>
+    @*<script src="~/Scripts/icheck.js"></script>*@
+    <script>
+        $(".select2").select2();
+
+        $('.datepicker').datepicker({
+            autoclose: true,
+            todayHighlight: true
+        });
+        function goback() {
+            window.location = document.referrer
+        }
+    </script>
+    <script src="~/Angular/Controllers/storeRequestController.js"></script>
+    <script src="~/Angular/pageSelectDirective.js"></script>
+    <script src="~/Angular/state.js"></script>
+}
+
+

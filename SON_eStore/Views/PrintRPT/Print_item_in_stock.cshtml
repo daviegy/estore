@@ -1,0 +1,205 @@
+﻿@model IEnumerable<SON_eStore.Models.itemsViewModel>
+
+@{
+    ViewBag.Title = "item_in_stock";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    int counter = 0;
+}
+
+
+<section class="content">
+    <div class="">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+            
+            <ol class="breadcrumb">
+                <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i> Dashboard</a></li>
+
+                <li class="active">Item in stock</li>
+            </ol>
+        </section>
+        <div class="pad margin no-print">
+            <div class="callout callout-info" style="margin-bottom: 0!important;">
+                <h4><i class="fa fa-info"></i> Note:</h4>
+                This page has been enhanced for printing. Click the print button at the bottom of the invoice to test.
+            </div>
+        </div>
+        <!-- Main content -->
+        <section class="invoice" id="printable">
+            <!-- title row -->
+            <div class="row">
+
+                <div class="col-md-12">
+                    <h2 class="page-header text-center">
+                        <img src="~/Content/img/smallSonlogo.fw.png" /><b> Human Resource Management</b>
+                      <br />  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                        <span style=""> eStore Management System</span>
+                            <small class="pull-right">Date: 
+                        @DateTime.UtcNow.ToString("dd MMM,yyy")  </small>
+                    
+                    </h2>
+                    
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- info row -->
+            <div class="row invoice-info">
+                <div class="invoice-col">
+                    <h3><b> ITEMS IN STOCK</b></h3>
+                    <div class="chart-responsive">
+                        <canvas id="barChart" height="100" style="width:inherit"> </canvas>
+                    </div>
+                </div>
+                
+            </div>
+            <!-- /.row -->
+            <!-- Table row -->
+            <div class="row">
+                <div class="col-xs-12 table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>SN</th>
+                                <th>Item</th>
+                                <th>Category</th>
+                                <th>Qty. Available</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                counter++;
+                                <tr>
+                                    <td>@counter</td>
+                                    <td>@item.product_name</td>
+                                    <td>@item.category_name</td>
+                                    <td>@String.Format("{0:n0}", item.qtyAvailable) @item.item_base_unit</td>
+                                </tr>
+                            }
+
+
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+            <div class="row">
+                <!-- accepted payments column -->
+                @*<div class="col-xs-6">
+                    <p class="lead">DISCLAIMER:</p>
+
+                    <p class="text-muted well well-sm no-shadow" style="margin-top: 10px;">
+                        1. Quantity allocated by store keeper can be reviewed by the store admin.<br />
+                        2. Kindly, note that quantity of items allocated is based on quantity available in store.<br />
+                        3. Only item approved by the store admin can be supply to the requesting department or state.
+                    </p>
+                </div>*@
+                <!-- /.col -->
+                <div class="col-xs-6">
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <tr>
+                                <th colspan="2">
+                                  
+
+                                </th>
+                            </tr>
+                            <tr>
+                                <th colspan="2">
+                                    Name & Signature:
+                                    
+                                </th>
+                            </tr>
+                            <tr>
+                                <td colspan="2"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+            <!-- this row will not appear when printing -->
+            <div class="row no-print">
+                <div class="col-xs-12">
+                    <a class="btn btn-success pull-right" href="javascript:window.print()">Print <i class="glyphicon glyphicon-print"></i></a>
+                    <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                </div>
+            </div>
+        </section>
+        <!-- /.content -->
+        <div class="clearfix"></div>
+    </div>
+
+</section>
+<!-- /.content-wrapper -->
+@section scripts{
+    @*<script src="~/Scripts/JqueryPrint/jquery.PrintArea.js_4.js"></script>
+        <script src="~/Scripts/JqueryPrint/core.js"></script>*@
+    <script src="~/Scripts/jQuery.print.js"></script>
+    <script type='text/javascript'>
+    $(function () {
+        $("#printable").find('#print').on('click', function () {
+            $.print("#printable");
+        });
+    });
+    
+    //alert(aDatasets1)
+    var data = @Html.Raw(Json.Encode(Model.Take(20)));
+         var aLabels = [];
+        var aDatasets1 = [];
+        for (var i in data) {
+            aLabels.push(data[i].product_name)
+            aDatasets1.push(data[i].qtyAvailable)
+        }
+        // alert(data)
+    var dynamicColors = function () {
+            var r = Math.floor(Math.random() * 255);
+            var g = Math.floor(Math.random() * 255);
+            var b = Math.floor(Math.random() * 255);
+            return "rgb(" + r + "," + g + "," + b + ")";
+        }
+    var areaChartData = {
+        labels: aLabels,
+        datasets: [
+          {
+              label: "Store Items",
+              data: aDatasets1,
+              fillColor: dynamicColors(),
+              strokeColor: "rgba(210, 214, 222, 1)",
+              pointColor: "rgba(210, 214, 222, 1)",
+              pointStrokeColor: "#c1c7d1",
+              pointHighlightFill: "#fff",
+              pointHighlightStroke: "rgba(220,220,220,1)",
+          }
+        ]
+    };
+    var barChartCanvas = $("#barChart").get(0).getContext("2d");
+    var barChart = new Chart(barChartCanvas);
+    var barChartData = areaChartData;
+ 
+    var barChartOptions = {
+        responsive: true,
+        title: { display: true, text: 'CHART.JS DEMO CHART' },
+        legend: { position: 'bottom' },
+        scales: {
+            xAxes: [{ gridLines: { display: false }, display: true, scaleLabel: { display: false, labelString: '' } }],
+            yAxes: [{ gridLines: { display: false }, display: true, scaleLabel: { display: false, labelString: '' }, ticks: { stepSize: 50, beginAtZero: true } }]
+        }
+    };
+
+    barChartOptions.datasetFill = false;
+    window.barChart = new Chart(barChartCanvas).Bar(barChartData, barChartOptions);
+    var bars = barChart.datasets[0].bars;
+    for (i = 0; i < bars.length; i++) {
+        var color = dynamicColors();
+        bars[i].fillColor = color;
+
+    }
+    barChart.update();
+    </script>
+}
+

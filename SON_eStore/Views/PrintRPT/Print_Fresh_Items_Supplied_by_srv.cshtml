@@ -1,0 +1,189 @@
+﻿@using SON_eStore.Models;
+@{
+    ViewBag.Title = "Print_Fresh_Items_Supplied_by_srv";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ApplicationDbContext db = new ApplicationDbContext();
+    var supplier = db.supplier.Find(ViewBag.spid);
+    int counter = 0;
+    int totalAmount = 0;
+}
+
+<section class="content">
+    <div class="">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+
+            <ol class="breadcrumb">
+                <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i> Dashboard</a></li>
+
+                <li class="active">Store Supplies</li>
+            </ol>
+        </section>
+        <div class="pad margin no-print">
+            <div class="callout callout-info" style="margin-bottom: 0!important;">
+                <h4><i class="fa fa-info"></i> Note:</h4>
+                This page has been enhanced for printing. Click the print button at the bottom of the invoice to test.
+            </div>
+        </div>
+        <!-- Main content -->
+        <section class="invoice" id="printable">
+            <!-- title row -->
+            <div class="row">
+
+                <div class="col-md-12">
+                    <h2 class="page-header" style="text-align:center">
+                        <img src="~/Content/img/smallSonlogo.fw.png" /><b> Human Resource Management</b>
+                        <br />  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                        <span style=""> eStore Management System</span>
+                        <small class="pull-right">
+                            Date:
+                            @DateTime.UtcNow.ToString("dd MMM,yyy")
+                        </small>
+                    </h2>
+                </div>
+                <!-- /.col -->
+            </div>            <!-- info row -->
+            <!-- /.row -->
+            <div class="row invoice-info">
+                @*<div class="col-sm-4 invoice-col">
+                    <address>
+                        @if (ViewBag.sdt != "")
+                        {
+                            <span><b>From</b>:  @ViewBag.sdt</span>
+                            <br />
+                        }
+                        @if (ViewBag.edt != "")
+                        {
+                            <span><b>To</b>:  @ViewBag.edt</span>
+                            <br />
+                        }
+                    </address>
+                </div>*@
+                <!-- /.col -->
+                <!-- /.col -->
+                <div class="col-sm-4 invoice-col">
+                    <address>
+                        <b>Store Receipt Voucher:</b> <b class="text-danger">#@ViewBag.srv</b>
+                        <br />
+                        @if (supplier != null)
+                        {
+                            <b>SUPPLIER:  </b> @supplier.supplier_name
+                            <br>
+                            <b>ADDRESS:  </b>            @supplier.address 
+                            <br>
+                            <b>EMAIL:         </b>       @supplier.email <br>
+                            <b>PHONE:       </b>         @supplier.phone_no <br>
+                        }
+                        <b>Supplied Date: @{
+                            var spdt = ViewBag.spdt;
+                            var crdt = ViewBag.crdt;
+                             spdt = Convert.ToDateTime(spdt).ToString("dd MMM, yyyy");
+                             crdt = Convert.ToDateTime(crdt).ToString("dd MMM, yyyy");
+                                }</b>@spdt <br />
+
+                        <b>Created Date: </b>      @crdt                  
+                    </address>
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- Table row -->
+            <div class="row">
+                <div class="col-xs-12 table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th colspan="4">
+                                    <h3><b>LIST OF ITEMS SUPPLIED</b></h3>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>SN</th>
+                                <th>ITEMS</th>
+                                <th>QTY. SUPPLIED</th>
+                                <th>QTY. SUPPLIED (in base unit)</th>
+                                <th>UNIT PRICE</th>
+                                <th>AMOUNT</th>                                
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                counter++;
+                                <tr>
+                                    <td>@counter</td>
+                                    <td>@item.product_name</td>
+                                    <td>@string.Format("{0:n0}", item.qty_supplied) @item.qty_denomination</td>
+                                    <td>@string.Format("{0:n0}", item.qty_supplied_in_base_unit) @item.item_base_unit</td>
+                                    <td>&#8358;@String.Format("{0:n}", item.unitPrice)</td>
+                                    <td>&#8358;@String.Format("{0:n}", item.Amount)
+                                    
+                                    </td>
+
+
+                                </tr>
+                                totalAmount += item.Amount;
+                                        }
+
+                            <tr><td colspan="5">TOTAL:</td>
+                            <td><b>&#8358;@String.Format("{0:n}", totalAmount)</b></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+            <div class="row">
+                <!-- accepted payments column -->
+                @*<div class="col-xs-6">
+                        <p class="lead">DISCLAIMER:</p>
+
+                        <p class="text-muted well well-sm no-shadow" style="margin-top: 10px;">
+                            1. Quantity allocated by store keeper can be reviewed by the store admin.<br />
+                            2. Kindly, note that quantity of items allocated is based on quantity available in store.<br />
+                            3. Only item approved by the store admin can be supply to the requesting department or state.
+                        </p>
+                    </div>*@
+                <!-- /.col -->
+                <div class="col-xs-6">
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <tr>
+                                <th colspan="2">
+                                    Name & Signature:
+                                    <br />
+                                    <small>(Supplier)</small>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th colspan="2">
+                                    Name & Signature:
+                                    <br />
+                                   <small>(Store Keeper)</small>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td colspan="2"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+            <!-- this row will not appear when printing -->
+            <div class="row no-print">
+                <div class="col-xs-12">
+                    <a class="btn btn-success pull-right" href="javascript:window.print()">Print <i class="glyphicon glyphicon-print"></i></a>
+                   
+                    <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+
+                </div>
+            </div>
+        </section>
+        <!-- /.content -->
+        <div class="clearfix"></div>
+    </div>
+
+</section>

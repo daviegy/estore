@@ -1,0 +1,225 @@
+﻿@using Microsoft.AspNet.Identity;
+@using Microsoft.AspNet.Identity.EntityFramework;
+@using SON_eStore.Models;
+@{
+    ViewBag.Title = "eStore Users";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ApplicationDbContext db = new ApplicationDbContext();
+    var user = db.Users.Find(User.Identity.GetUserId());
+
+}
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>eStore Users</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/Dashboard"><i class="fa fa-dashboard"></i> Dashboard</a></li>
+        <li class="active">eStore Users</li>
+    </ol>
+</section>
+<section ng-controller="manageUserController" class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="col-xs-9">
+                <div class="panel panel-success">
+                    <div class="panel-body">
+                        <a href="/estore/Reg_StoreStaff" class="btn btn-info">Add user to eStore&nbsp;&nbsp;<i class="glyphicon glyphicon-plus"></i></a>
+                        <br /><br />
+                        <div class="table-responsive">
+                            <table st-table="sUsers" st-safe-src="eStoreUsers" class="table table-bordered table-striped" style="text-transform:capitalize">
+                                <thead>
+                                    <tr>
+                                        <th colspan="6" style="text-align:center; color:red;font-size:x-large">eStore Users  List</th>
+                                        <th colspan="3">
+                                            <input st-search="" class="form-control" placeholder="search ..." type="text" />
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th>SN</th>
+                                        @*<th>
+                        Staff ID
+                    </th>*@
+                                        <th>
+                                            Name
+                                        </th>
+
+                                        <th>
+                                            Username
+                                        </th>
+                                        <th>
+                                            Role
+                                        </th>
+                                        <th>
+                                            Rank
+                                        </th>
+                                        @*<th>
+                        Email
+                    </th>
+                    <th>
+                        Phone
+                    </th>*@
+                                        <th>
+                                            Department
+                                        </th>
+                                        <th>
+                                            Unit
+                                        </th>
+                                        <th></th>
+                                    </tr>
+
+                                </thead>
+                                <tbody>
+
+                                    <tr ng-repeat="c in sUsers|orderBy:'Fname'">
+                                        <td>{{$index + 1}}</td>
+                                        @*<td>
+                        {{c.staff_id}}
+                    </td>*@
+                                        <td ng-hide="">
+                                            {{c.name}}
+                                        </td>
+                                        <td>
+                                            {{c.username}}
+                                        </td>
+                                        <td>
+                                            {{c.rolename}}
+                                        </td>
+                                        <td>{{c.rank}}</td>
+                                        @*<td>
+                        {{c.email}}
+                    </td>
+                    <td>
+                        {{c.phone}}
+                    </td>*@
+                                        <td>{{c.dept_name}}</td>
+                                        <td>{{c.unit_name}}</td>
+                                        <td>
+                                            <button class="btn btn-warning" title="edit" ng-click="editUsers(c.id)"><i class="glyphicon glyphicon-edit"></i></button>
+                                            @{
+                                                if (User.IsInRole("StoreAdmin"))
+                                                {
+                                                    <button class="btn btn-danger" title="delete" ng-click="delUser(c.id)"><i class="glyphicon glyphicon-trash"></i></button>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="9" class="text-center">
+                                            <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-3">
+                <div ng-show="editForm" class="panel panel-warning">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <h3>Edit User Information</h3>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <form name="userForm" ng-submit="eStoreuserEditForm()" novalidate>
+                            <input type="hidden" ng-hide="u_id" value="{{u_id}}" />
+                            @*<div class="form-group has-feedback">
+                <label class="control-label">Staff Id</label>
+                <input type="text" required class="form-control" placeholder="Staff ID" name="Staffid" ng-model="staffid" />
+                <span class="glyphicon glyphicon-user form-control-feedback" ng-show="userForm.Staffid.$dirty && userForm.Staffid.$invalid"></span>
+                <span class="text-danger" ng-show="userForm.Staffid.$error.required">{{staffidexist}}Staff ID is required!</span>
+            </div>*@
+                            <div class="form-group has-feedback">
+                                <label class="control-label">First Name</label>
+                                <input type="text" class="form-control" placeholder="First Name" name="fname" ng-model="fname" required />
+                                <span class="glyphicon glyphicon-user form-control-feedback" ng-show="userForm.fname.$dirty && userForm.fname.$invalid"></span>
+                                <span class="text-danger" ng-show="userForm.fname.$error.required">First Name is required!</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Last Name</label>
+                                <input type="text" class="form-control" placeholder="Last Name" name="lname" ng-model="lname" required />
+                                <span class="glyphicon glyphicon-user form-control-feedback" ng-show="userForm.lname.$dirty && userForm.lname.$invalid"></span>
+                                <span class="text-danger" ng-show="userForm.lname.$error.required">Last Name is required!</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Rank/Position</label>
+                                <input type="text" class="form-control" placeholder="Rank" name="rank" ng-model="rank" />
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Role</label>&nbsp;&nbsp; <span class="text-danger"> if roles is not in the list, <a style="text-decoration:underline" href="/estore/roles">Add Role</a></span>
+                                <select class="form-control" ng-model="ddlRole" required name="ddlRole">
+                                    <option value="">Select Role</option>
+                                    <option ng-repeat="r in roles|orderBy:'name'" value="{{r.id}}">{{r.name}}</option>
+                                </select>
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="userForm.ddlRole.$dirty && userForm.ddlRole.$invalid"></span>
+                                <span class="text-danger" ng-show="userForm.ddlRole.$error.required">Select role</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Departments</label>&nbsp;&nbsp;<span class="text-danger"> if department is not in the list, <a style="text-decoration:underline" href="/estore/depts">register department</a></span>
+                                <oi-select oi-options="d.dept_name for d in depts track by d.id "
+                                           ng-model="ddlDept"
+                                           placeholder="Select Department" ng-required="true" name="ddlDept" ng-change="getSubUnit(ddlDept)">
+                                </oi-select>
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="userForm.ddlDept.$dirty && userForm.ddlDept.$invalid"></span>
+                                <span class="text-danger" ng-show="userForm.ddlDept.$error.required">Select department</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Units</label>&nbsp;&nbsp;<span class="text-danger">if unit is not in the list, <a style="text-decoration:underline" href="/estore/dept_units">register unit</a></span>
+         
+                                <oi-select oi-options="u.unit_name for u in units track by u.id "
+                                           ng-model="ddlUnit"
+                                           placeholder="Select Unit" ng-required="true" name="ddlUnit">
+                                </oi-select>
+                                @*<span class="glyphicon glyphicon-book form-control-feedback" ng-show="userForm.ddlDept.$dirty && userForm.ddlDept.$invalid"></span>
+                <span class="text-danger" ng-show="userForm.ddlDept.$error.required">Select item category</span>*@
+                            </div>
+                            @*<div class="form-group has-feedback">
+                <label class="control-label">Phone</label>
+                <input type="text" class="form-control" placeholder="Phone number" name="phone" ng-model="phone" />
+            </div>
+            <div class="form-group has-feedback">
+                <label class="control-label">Email</label>
+                <input type="email" ng-blur="valEmail()" class="form-control" placeholder="Email" name="email" ng-model="email" />
+                <span class="glyphicon glyphicon-envelope form-control-feedback" ng-show="userForm.email.$dirty && userForm.email.$invalid"></span>
+                <span class="text-danger" ng-show="userForm.email.$error.email">{{emailexist}}Invalid email</span>
+            </div>*@
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <input class="btn btn-success btn-block btn-flat" type="submit" value="Update" ng-disabled="userForm.fname.$dirty && userForm.fname.$invalid ||
+userForm.ddlDept.$dirty && userForm.ddlDept.$invalid ||userForm.lname.$dirty && userForm.lname.$invalid">
+
+                                </div>
+                                <!-- /.col -->
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+</section>
+
+
+
+@section scripts{
+    <script src="~/Scripts/sweetalert.min.js"></script>
+
+<script src="~/Angular/state.js"></script>
+    <script src="~/Angular/Controllers/manageUserController.js"></script>
+    <script src="~/Angular/pageSelectDirective.js"></script>
+
+}
+
+
+

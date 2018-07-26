@@ -1,0 +1,154 @@
+﻿
+@{
+    ViewBag.Title = "borrowRequestList";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Borrow Request</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">Borrow Request</li>
+    </ol>
+</section>
+
+<section ng-controller="borrowRequestController" class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="col-md-12">
+                <div class="box box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Borrow Request List </h3>
+
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>*@
+                        </div>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="">
+                            <div class="col-lg-12">
+                                <table st-table="sborrowRqList" st-safe-src="borrowRqList" style="text-transform:capitalize" class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="8" style="text-align:center; color:red;font-size:x-large">BORROWED REQUEST LIST</th>
+                                            <th>
+                                                <input st-search="" class="form-control" placeholder="search ..." type="text" />
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            @*<th>SN</th>*@
+                                            <th>
+                                                SRV.No.
+                                            </th>
+                                            <th>
+                                                DEPT/STATE/REGION
+                                            </th>
+                                            <th>UNIT</th>
+                                            <th>
+                                                STAFF NAME
+                                            </th>
+                                            <th>
+                                                NO. OF ITEMS
+                                            </th>
+                                            <th>
+                                                STATUS
+                                            </th>
+                                            <th>REQUEST DATE</th>
+                                            <th>CREATED DATE</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="c in sborrowRqList">
+                                            <td>
+                                                <button ng-click="viewMorep(c.orderid)" style="text-decoration:underline">{{c.srv}}</button>
+                                            </td>
+                                            <td>
+                                                <span>
+                                                    {{c.requesting_state}}
+                                                </span>
+                                                <span>
+                                                    {{c.requesting_dept}}
+                                                </span>
+                                                <span>
+                                                    {{c.requesting_region}}
+                                                </span>
+                                            </td>
+                                            <td>{{c.unit}}</td>
+                                            <td>
+                                                {{c.reqst_staff_name}}
+                                            </td>
+                                            <td>
+                                                {{c.total_item_requested}}
+                                            </td>
+                                            <td>
+                                                <span class="text-info">
+                                                    {{c.request_status}}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {{c.request_date|date:'dd-MMM-yyyy'}}
+                                            </td>
+                                            <td>
+                                                {{c.created_date|date:'dd-MMM-yyyy'}}
+                                            </td>
+                                            <td>
+                                                @*review item before approval*@
+                                                <button ng-click="viewMorep(c.orderid)" class="btn btn-success">View More..</button>
+                                                @*<a href="/estore/storeRequestInvoice/?orderid={{c.orderid}}" class="btn btn-warning">Print Reciept &nbsp;&nbsp;&nbsp;<i class="glyphicon glyphicon-print"></i></a>*@
+                                            </td>
+
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="9" class="text-center">
+                                                <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+
+                                <button class="btn btn-danger pull-right" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                            </div>
+                        </div>
+                        <!-- /.row -->
+                    </div>        <!-- /.box-body -->
+                    <div class="box-footer">
+                        List of borrow request.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</section>
+
+@section scripts{
+    <script src="~/Scripts/sweetalert.min.js"></script>
+    <script src="~/Scripts/bootstrap-datepicker.js"></script>
+    @*<script src="~/Scripts/icheck.js"></script>*@
+    <script>
+        $(".select2").select2();
+        $('.datepicker').datepicker({
+            autoclose: true,
+            todayHighlight: true
+        });
+    </script>
+    <script src="~/Angular/Controllers/borrowRequestController.js"></script>
+    <script src="~/Angular/pageSelectDirective.js"></script>
+    <script src="~/Angular/state.js"></script>
+}
+
+
+
+
+
+

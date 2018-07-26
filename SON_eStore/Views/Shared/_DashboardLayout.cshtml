@@ -1,0 +1,401 @@
+﻿@{
+    var session = Session["token"];
+    if (session == null)
+    {
+        Response.Redirect("/estore/login");
+    }
+}
+@using SON_eStore.Models
+@using Microsoft.AspNet.Identity.EntityFramework;
+@using Microsoft.AspNet.Identity
+@{
+    ApplicationDbContext db = new ApplicationDbContext();
+    var user = db.Users.Find(User.Identity.GetUserId());
+    string s = System.Configuration.ConfigurationManager.AppSettings["MaxLevel"];
+    String EncryptId = SON_eStore.Customclasses.Cryptoclass.EncryptStringAES(user.UserName, s);
+    EncryptId = EncryptId.Replace("/", "$25");
+    EncryptId = EncryptId.Replace("+", "$24");
+}
+<!DOCTYPE html>
+
+<html ng-app="myApp">
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="cache-control" content="no-cache" />
+
+    <meta http-equiv="pragma" content="no-cache" />
+
+    <meta http-equiv="expires" content="-1" />
+    <title>@ViewBag.Title</title>
+
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome.min.css" rel="stylesheet" />
+    <link href="~/Content/ionicons.min.css" rel="stylesheet" />
+    <link href="~/Content/select2.min.css" rel="stylesheet" />
+    <link href="~/Content/AdminLTE.min.css" rel="stylesheet" />
+    <link href="~/Content/skins/_all-skins.min.css" rel="stylesheet" />
+
+    <link href="~/Content/img/favicon-96x96.png" rel="shortcut icon" />
+    <link href="~/Content/bootstrap-datepicker.css" rel="stylesheet" />
+    <base href="/" />
+    <link href="~/Content/ngToast.min.css" rel="stylesheet" />
+    <link href="~/Content/sweetalert.min.css" rel="stylesheet" />
+  @*  <link href="~/Content/iCheck/green.css" rel="stylesheet" />*@
+    <link href="~/Content/bootstrap-table.css" rel="stylesheet" />
+    <link href="~/Content/toastr.min.css" rel="stylesheet" />
+    <link href="~/Content/select.min.css" rel="stylesheet" />
+</head>
+<body class="hold-transition skin-green sidebar-mini">
+    <input type="hidden" id="success" value="@TempData["success"]" />
+    <input type="hidden" id="info" value="@TempData["info"]" />
+    <input type="hidden" id="warning" value="@TempData["warning"]" />
+    <input type="hidden" id="error" value="@TempData["error"]" />
+    <toast></toast>
+    <div class="wrapper">
+        <header class="main-header">
+            <!-- Logo -->
+            <a href="/estore/dashboard" class="logo">
+                <!-- mini logo for sidebar mini 50x50 pixels -->
+                @if (User.IsInRole("StoreAdmin"))
+                {
+                    <span class="logo-mini"><b>A</b>LT</span>
+                  <!-- logo for regular state and mobile devices -->
+                    <span class="logo-lg"><b>Admin</b></span>
+                }
+                else
+                {
+                    <span class="logo-mini"><b>S</b>KP</span>
+                <!-- logo for regular state and mobile devices -->
+                    <span class="logo-lg"><b>Store-keeper</b></span>
+                }
+            </a>
+            <!-- Header Navbar: style can be found in header.less -->
+            <nav class="navbar navbar-static-top" role="navigation">
+                <!-- Sidebar toggle button-->
+                <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                </a>
+                <!-- Navbar Right Menu -->
+                <div class="navbar-custom-menu">
+                    <ul class="nav navbar-nav">
+
+                        <!-- User Account: style can be found in dropdown.less -->
+                        <li class="dropdown user user-menu">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <img src="~/Content/img/favicon-96x96.png" class="user-image" alt="User Image">
+                                <span class="hidden-xs">@user.Name.ToString()</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <!-- User image -->
+                                <li class="user-header">
+                                    <img src="~/Content/img/favicon-96x96.png" class="img-circle" alt="User Image">
+                                    <p>
+                                        @user.Name.ToString() - @user.rolename
+                                        <small>
+                                            @{
+                                                var regdt = (user.Reg_date != null) ? Convert.ToDateTime(user.Reg_date).ToString("dd MMM, yyy") : "";
+                                                if (regdt != "")
+                                                {
+                                                    <span> Member since @regdt</span>
+                                                }
+                                            }
+                                        </small>
+                                    </p>
+                                </li>
+                                <!-- Menu Body -->
+                                <li class="user-body">
+                                    @*<div class="row">
+                                            <div class="col-xs-4 text-center">
+                                                <a href="#">Followers</a>
+                                            </div>
+                                            <div class="col-xs-4 text-center">
+                                                <a href="#">Sales</a>
+                                            </div>
+                                            <div class="col-xs-4 text-center">
+                                                <a href="#">Friends</a>
+                                            </div>
+                                        </div>*@
+                                    <!-- /.row -->
+                                </li>
+                                <!-- Menu Footer-->
+                                <li class="user-footer">
+                                    @*<div class="pull-left">
+                                            <a href="#" class="btn btn-default btn-flat">Profile</a>
+                                        </div>*@
+                                    <div ng-controller="loginController" class="pull-right">
+                                        <a ng-click="signout()" class="btn btn-default btn-flat">Sign out</a>
+
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                        <!-- Control Sidebar Toggle Button -->
+                        <li>
+                            <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        <aside class="main-sidebar">
+            <!-- sidebar: style can be found in sidebar.less -->
+            <section class="sidebar">
+                <!-- Sidebar user panel -->
+                <div class="user-panel">
+                    <div class="pull-left image">
+                        <img src="~/Content/img/favicon-96x96.png" class="img-circle" alt="User Image">
+                    </div>
+                    <div class="pull-left info">
+                        <p>@user.Name</p>
+                        <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
+                    </div>
+                </div>
+
+                <!-- sidebar menu: : style can be found in sidebar.less -->
+                <ul class="sidebar-menu">
+                    <li class="header">MAIN NAVIGATION</li>
+                    <li class="active">
+                        <a href="/estore/Dashboard">
+                            <i class="fa fa-dashboard"></i> <span>Dashboard</span>
+                        </a>
+
+                    </li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-laptop"></i>
+                            <span>Manage Requisition</span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="/estore/create_item_request"><i class="fa fa-circle-o"></i>Create Item Request</a></li>
+                            <li><a href="/estore/fresh_request"><i class="fa fa-circle-o"></i>Fresh Request</a></li>
+                            <li><a href="/estore/pending_approval_request"><i class="fa fa-circle-o"></i>Pending Approval Request</a></li>
+                            <li><a href="/estore/approved_request"><i class="fa fa-circle-o"></i>Approved Request</a></li>
+                            <li class="treeview">
+                                <a href="#">
+                                    <i class="fa fa-circle-o"></i>
+                                    Manage Borrowing
+                                    <i class="fa fa-angle-left pull-right"></i>
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li><a href="/estore/createBorowRequest"><i class="fa fa-circle-o"></i>Create Borrow Request</a></li>
+                                    <li><a href="/estore/borrowRequestList"><i class="fa fa-circle-o"></i>View Borrow Request</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="/estore/categoryList">
+                            <i class="fa fa-files-o"></i>
+                            <span>Manage Category</span>
+                            @*   <i class="fa fa-angle-left pull-right"></i>*@
+                        </a>
+                    </li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-th"></i>
+                            <span>Manage Items</span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="/estore/items_In_Store"><i class="fa fa-circle-o"></i>Add Items to Store</a></li>
+                            <li><a href="/estore/stockSupplies"><i class="fa fa-circle-o"></i>Receive Supplies</a></li>
+                            <li><a href="/estore/ViewAllItemsInStore"><i class="fa fa-circle-o"></i>View Items</a></li>
+                            <li><a href="/estore/converstionTable"><i class="fa fa-circle-o"></i>Conversion Table</a></li>
+                        </ul>
+                    </li>
+                    <li class="treeview">
+                        <a href="/estore/suppliers">
+                            <i class="glyphicon glyphicon-header"></i>
+                            <span>Manage Suppliers</span>
+                            @*<i class="fa fa-angle-left pull-right"></i>*@
+                        </a>
+                    </li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-table"></i> <span>Report</span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="/estore/in_stock_items"><i class="fa fa-circle-o"></i>Items in stock</a></li>
+                            <li><a href="/estore/out_of_stock"><i class="fa fa-circle-o"></i>Items out of stock</a></li>
+                            <li><a href="/estore/ros"><i class="fa fa-circle-o"></i>Running out of stock</a></li>
+                            <li><a href="/estore/item_supplies_rpt"><i class="fa fa-circle-o"></i>Supplies Report</a></li>
+                            <li><a href="/estore/Request_Item_RPT"><i class="fa fa-circle-o"></i>Request Report</a></li>
+                            <li class="treeview">
+                                <a href="#">
+                                    <i class="glyphicon glyphicon-th-large"></i>
+                                    <span>Chart</span>
+                                    <i class="fa fa-angle-left pull-right"></i>
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li><a href="/chart/FRI_Chart"><i class="fa fa-circle-o"></i>Frequently Requested Item</a></li>
+                                    <li><a href="/chart/ChartIndex"><i class="fa fa-circle-o"></i>Generate Chart</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="glyphicon glyphicon-tree-deciduous"></i> <span>Manage Department</span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="/estore/depts"><i class="fa fa-circle-o"></i>Departments</a></li>
+                            <li><a href="/estore/dept_units"><i class="fa fa-circle-o"></i>Units</a></li>
+                        </ul>
+                    </li>
+                    @if (User.IsInRole("StoreAdmin"))
+                    {
+
+                        <li class="treeview">
+                            <a href="#">
+                                <i class="glyphicon glyphicon-wrench"></i> <span>Manage Users</span>
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </a>
+                            <ul class="treeview-menu">
+                                <li><a href="/estore/CreateUser"><i class="fa fa-circle-o"></i>Add  Staff</a></li>
+                                <li><a href="/estore/viewUsers"><i class="fa fa-circle-o"></i>View Staff</a></li>
+                                <li class="treeview"><a href="#">
+                                 <i class="fa fa-circle-o"></i> <span>Manage eStore User</span>
+                                  <i class="fa fa-angle-left pull-right"></i>
+                                    </a>
+                                <ul class="treeview-menu">
+                                    <li><a href="/estore/Reg_StoreStaff"><i class="fa fa-circle-o"></i>Add New eStore User</a></li>
+                                    <li><a href="/estore/view_eStoreUsers"><i class="fa fa-circle-o"></i>eStore Users</a></li>
+                                   @* <li><a href="/estore/roles"><i class="fa fa-circle-o"></i>Manage Role</a></li>*@
+                                  
+                                </ul>
+                                </li>
+                                <li><a href="/estore/resetPassword"><i class="fa fa-circle-o"></i>Reset password for users</a></li>
+                            </ul>
+                        </li>
+
+
+                    }
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="glyphicon glyphicon-user"></i> <span>Account</span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="/estore/Change_password"><i class="fa fa-circle-o"></i>Change password</a></li>
+                            <li ng-controller="loginController"><a href="#" ng-click="signout()"><i class="fa fa-circle-o"></i>Sign out</a></li>
+                        </ul>
+                    </li>
+                    @if (User.IsInRole("StoreAdmin"))
+                    {
+                        <li>
+                            <a href="/estore/log">
+                                <i class="glyphicon glyphicon-eye-open"></i> <span>Logs</span>
+                            </a>
+                        </li>
+                    }
+
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="glyphicon glyphicon-cloud-upload"></i> <span>Database</span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="/estore/dbBackup_Restore"><i class="fa fa-circle-o"></i>Backup</a></li>
+                            <li><a href="/estore/restoreDB"><i class="fa fa-circle-o"></i>Restore</a></li>
+                        </ul>
+                    </li>
+                    @*<li class="treeview">
+                            <a href="#">
+                                <i class="glyphicon glyphicon-user"></i> <span>Database</span>
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </a>
+                            <ul class="treeview-menu">
+                                <li><a href="#"><i class="fa fa-circle-o"></i>Backup</a></li>
+                                <li><a href="#"><i class="fa fa-circle-o"></i>Restore</a></li>
+                                <li ng-controller="loginController"><a href="#" ng-click="signout()"><i class="fa fa-circle-o"></i>Sign out</a></li>
+                            </ul>
+                        </li>*@
+                </ul>
+            </section>
+            <!-- /.sidebar -->
+        </aside>
+        <div class="content-wrapper">
+            @RenderBody()
+        </div>
+        <footer class="main-footer">
+            <div class="pull-right hidden-xs">
+                <b>eStore Version</b> 1.0.0
+            </div>
+            <strong>Copyright &copy; @DateTime.UtcNow.Year <a href="#">Standards Organisation of Nigeria</a>.</strong> All rights
+            reserved.
+        </footer>
+    </div>
+    <script src="../../Scripts/jquery-1.10.2.min.js"></script>
+    <script src="~/Scripts/Chart.js"></script>
+    <script src="../../Scripts/js/bootstrap.min.js"></script>
+    <script src="~/Scripts/toastr.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            if ($('#success').val()) {
+                displayMessage($('#success').val(), 'success');
+            }
+            if ($('#info').val()) {
+                displayMessage($('#info').val(), 'info');
+            }
+            if ($('#warning').val()) {
+                displayMessage($('#warning').val(), 'warning');
+            }
+            if ($('#error').val()) {
+                displayMessage($('#error').val(), 'error');
+            }
+        });
+        var displayMessage = function (message, msgType) {
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "positionClass": "toast-top-right",
+                "onClick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "8000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+
+            toastr[msgType](message);
+        };
+
+    </script>
+    <script src="~/Scripts/select2.full.min.js"></script>
+    <script>
+        $(function () {
+            $(".select2").select2({
+                allowClear: true
+            });
+
+        })
+    </script>
+    <script src="../../Scripts/js/app.min.js"></script>
+
+    <script src="~/Angular/angular.js"></script>
+    <script src="~/Angular/angular-animate.min.js"></script>
+    <script src="~/Angular/angular-sanitize.min.js"></script>
+    <script src="~/Angular/angular-touch.min.js"></script>
+    <script src="~/Angular/angular-cookies.min.js"></script>
+    <script src="~/Angular/ngToast.min.js"></script>
+    <script src="../Angular/myApp.js"></script>
+    <script src="~/Angular/smart-table.js"></script>
+    <script src="../Angular/Controllers/loginController.js"></script>
+    <script src="~/Angular/oi.select/module.js"></script>
+    <script src="~/Angular/oi.select/directives.js"></script>
+    <script src="~/Angular/oi.select/filters.js"></script>
+    <script src="~/Angular/oi.select/services.js"></script>
+    <script src="~/Scripts/select.min.js"></script>
+    @RenderSection("scripts", false)
+
+    <script src="~/Angular/ui-bootstrap-tpls-2.5.0.min.js"></script>
+    <script src="~/Angular/elif.js"></script>
+</body>
+
+</html>

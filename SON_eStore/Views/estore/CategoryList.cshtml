@@ -1,0 +1,204 @@
+﻿@using Microsoft.AspNet.Identity;
+@using Microsoft.AspNet.Identity.EntityFramework;
+@using SON_eStore.Models;
+@{
+    ViewBag.Title = "eStore Category";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ApplicationDbContext db = new ApplicationDbContext();
+    var user = db.Users.Find(User.Identity.GetUserId());
+}
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Category List</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/Dashboard"><i class="fa fa-dashboard"></i> Dashboard</a></li>
+        <li class="active">Category List</li>
+    </ol>
+</section>
+<section ng-controller="categoryController" class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="col-md-8">
+                <div class="panel panel-success">
+                    <div class="panel-body">
+                        <form ng-submit="CreateCategory()" name="catCreateForm" novalidate>
+                            <div class="input-group input-group-sm col-xs-7">
+                                <span class="input-group-btn">
+                                    <button ng-disabled="catCreateForm.CreateCatName.$dirty && catCreateForm.CreateCatName.$invalid" type="submit" class="btn btn-info btn-flat">Create Category <i class="glyphicon glyphicon-plus"></i></button>
+                                </span>
+                                <input type="text" name="CreateCatName"  required ng-model="CreateCatName" placeholder="Enter Category Name" class="form-control" />
+                                <span class="glyphicon glyphicon-lock form-control-feedback" ng-show="catCreateForm.CreateCatName.$dirty && catCreateForm.CreateCatName.$invalid"></span>                               
+                            </div>
+                        </form>    
+                        <br /><br />
+                        <div  class="table-responsive">
+                            <table st-table="scategories" st-safe-src="categories" class="table table-bordered table-striped" style="text-transform:capitalize">
+                                <thead>
+                                    <tr>
+                                        <th colspan="3" style="text-align:center; color:red;font-size:x-large">CATEGORY LIST</th>
+                                        <th>
+                                            <input st-search="" class="form-control" placeholder="search ..." type="text" />
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th>SN</th>
+                                        <th>
+                                            Category ID
+                                        </th>
+                                        <th>
+                                            Category Name
+                                        </th>
+                                        <th>
+                                        </th>
+                                    </tr>
+
+                                </thead>
+                                <tbody>
+
+                                    <tr ng-repeat="c in scategories|orderBy:'category_name'">
+                                        <td>{{$index + 1}}</td>
+                                        <td>
+                                            {{c.id}}
+                                        </td>
+                                        <td ng-hide="">
+                                            {{c.category_name}}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-warning" title="edit" ng-click="editcat(c.id)"><i class="glyphicon glyphicon-edit"></i></button>
+
+                                            <button class="btn btn-info" title="view items in category" ng-click="getCategoryItems(c.id)"><i class="glyphicon glyphicon-list"></i></button>
+                                            @{
+                                                if (User.IsInRole("StoreAdmin"))
+                                                {
+                                                    <button class="btn btn-danger" title="delete" ng-click="delCategory(c.id)"><i class="glyphicon glyphicon-trash"></i></button>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="6" class="text-center">
+                                            <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                        <div ng-show="catform" class="panel panel-danger">
+                            <div class="panel-heading">
+                                <div class="panel-title">
+                                    <h3>Edit items category</h3>
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                                <form name="catForm" ng-submit="update()" novalidate>
+                                    <div class="form-group has-feedback">
+                                        <label class="control-label">Category ID</label>
+                                        <input type="text" class="form-control" name="Cat_id" placeholder="" ng-model="catid" ng-disabled="catid">                                        
+                                    </div>
+                                    <div class="form-group has-feedback">
+                                        <label class="control-label">Category Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" placeholder="" name="cat_Name" ng-model="cat_name" required>                                        
+                                        <span class="glyphicon glyphicon-envelope form-control-feedback" ng-show="catForm.cat_Name.$dirty && catForm.cat_Name.$invalid"></span>
+                                    </div>
+                                    <div class="row">                                      
+                                        <div class="col-xs-6">
+                                            <button class="btn btn-success btn-block btn-flat" type="submit" ng-disabled="catForm.cat_Name.$dirty && catForm.cat_Name.$invalid">
+                                                Update
+                                            </button>
+                                        </div>
+                                        <!-- /.col -->
+
+                                    </div>
+                                    <div class="row">
+                                        <span class="text-danger text-center">{{ResponseErrors}}</span>                                      
+                                    </div>
+
+                                </form>
+                            </div>
+
+                        </div>
+                @*Items in a category*@
+                <div ng-show="showCategoryItems" class="panel panel-info">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            Items in ' <b>{{item_category_name|uppercase}}</b> ' category
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table st-table="citems" st-safe-src="items" class="table table-bordered table-striped" style="text-transform:capitalize">
+                                <thead>
+                                    <tr>
+                                        <th>SN</th>
+                                        <th>
+                                            Item ID
+                                        </th>
+                                        <th>
+                                            Item Name
+                                        </th>
+                                        <th>
+                                            Quatity Available
+                                        </th>
+                                    </tr>
+
+                                </thead>
+                                <tbody>
+                                    <tr ng-hide="showNoItem" ng-repeat="i in citems|orderBy:'product_name'">
+                                        <td>{{$index + 1}}</td>
+                                        <td>
+                                            {{i.id}}
+                                        </td>
+                                        <td>
+                                            {{i.product_name}}
+                                        </td>
+                                        <td>
+                                            {{i.category_name}}
+                                        </td>
+
+                                    </tr>
+                                    <tr ng-show="showNoItem">
+                                        <td colspan="4" style="color:red;text-transform:capitalize">{{noItem}}</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="4" class="text-center">
+                                            <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            <a href="/estore/categoryList" class="btn btn-success">Close</a>
+                        </div>
+                    </div>
+
+                </div>
+
+                    </div>
+
+
+        </div>
+    </div>
+</section>
+
+
+
+@section scripts{
+<script src="~/Scripts/sweetalert.min.js"></script>
+  <script src="~/Angular/Controllers/categoryController.js"></script>
+<script src="~/Angular/pageSelectDirective.js"></script>
+
+}
+
+
+

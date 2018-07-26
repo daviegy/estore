@@ -1,0 +1,640 @@
+﻿
+@{
+    ViewBag.Title = "createBorowRequest";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Item Borrowing Form</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">Item Borrowing Form</li>
+    </ol>
+</section>
+
+<section ng-controller="borrowRequestController" class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="col-md-5">
+                <div ng-show="showItemRequisitionForm" class="panel panel-success">
+                    <div class="panel-body">
+                        <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                        <span style="font-size:12pt" class="text-danger">kindly, <a style="text-decoration:underline" href="/estore/borrowRequestList">click here</a> to view newly created request.</span>
+                        <br /><br />
+                        <div class="box box-success">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">ITEM(S) REQUEST FORM</h3> <br />
+                                <b>All fields mark with (<span style="color:red">*</span>), are required!</b>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>*@
+                                </div>
+                            </div>
+                            <!-- /.box-header -->
+                            <div class="box-body">
+                                <div class="panel panel-default">
+                                    <div class="panel-body">
+                                        <form id="addItemForm" name="addItemForm" novalidate ng-submit="AddItemToCart()">
+                                            <!-- /.col -->
+                                            <div class="form-group">
+                                                <label class="control-label">Store Requisition No: <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" required placeholder="Store Requistion No." ng-blur="validateSRV()" name="SRV" ng-model="srv" />
+                                                <span class="text-danger" ng-show="addItemForm.SRV.$invalid">required!</span>
+                                                <span class="text-danger">{{displayQtyError}}</span>
+                                            </div>
+                                            <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                    <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px;font-weight:600">
+                                                        Request Type
+                                                    </span>
+                                                </div>
+                                                <br>
+                                            </div>
+                                            <div class="form-group has-feedback">
+                                                <label class="control-label" style="font-size:12pt">Request Type <span class="text-danger">*</span></label> <br>
+                                                <select id="rqtype" ng-model="rqtype" ng-change="requestType()" name="rqtype" class="form-control" required>
+                                                    <option selected="selected" value="">Select request type</option>
+                                                    <option value="internalRequest">Internal Request</option>
+                                                    <option value="regionalRequest">Regional Request</option>
+                                                    <option value="stateRequest">State Request</option>
+                                                </select>
+                                                <span class="text-danger" ng-show="addItemForm.rqtype.$invalid">required!</span>
+                                            </div>
+                                            @*States*@
+                                            <div ng-show="showState">
+                                                <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                    <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                        <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px;font-weight:600">
+                                                            Requesting State
+                                                        </span>
+                                                    </div>
+                                                    <br>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="control-label">State office <span class="text-danger">*</span></label>
+                                                    <oi-select oi-options="s.name for s in states track by s.id"
+                                                               ng-model="ddlState"
+                                                               placeholder="Select State Office" ng-change="getStateStaff()" data-ng-required="rqState" name="ddlState">
+                                                    </oi-select>
+                                                    <span class="text-danger" ng-show="addItemForm.ddlState.$invalid">Required!</span>
+                                                </div><br />
+                                                <div class="form-group">
+                                                    <label class="control-label text-green" style="font-size:12pt">Is request from state labouratory? <span class="text-danger"></span></label>
+                                                    <br />
+                                                    <input style="height:20px; width:20px" type="radio" ng-model="labRequest" name="labRequest" value="Yes" /> <span style="font-size:20px">Yes</span>
+                                                    <input style="height:20px; width:20px" type="radio" ng-model="labRequest" name="labRequest" value="No" ng-checked="true" /><span style="font-size:20px">No</span>
+
+                                                </div>
+                                            </div>
+                                            @*Regions*@
+                                            <div ng-show="showRegions">
+                                                <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                    <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                        <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px;font-weight:600">
+                                                            Requesting Region
+                                                        </span>
+                                                    </div>
+                                                    <br>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="control-label">Regional office <span class="text-danger">*</span></label>
+                                                    <select id="ddlRegion" class="form-control" ng-change="getRegionalStaff()" ng-model="ddlRegion " name="ddlRegion" ng-required="rqRegion">
+                                                        <option selected="selected" value="">Select Regional office</option>
+                                                        <option value="North Central">North Central</option>
+                                                        <option value="North East">North East</option>
+                                                        <option value="North West">North West</option>
+                                                        <option value="South East">South East</option>
+                                                        <option value="South West">South West</option>
+                                                        <option value="South South">South South</option>
+                                                        @*ng-options="s.name for s in states"*@
+                                                    </select>
+                                                    <span class="text-danger" ng-show="addItemForm.ddlRegion.$invalid">Required!</span>
+                                                </div>
+                                            </div>
+                                            @*Depts*@
+                                            <div ng-show="showDept">
+                                                <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                    <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                        <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px; font-weight:600">
+                                                            Requesting Department
+                                                        </span>
+                                                    </div>
+                                                    <br>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="control-label">Department <span class="text-danger">*</span></label>&nbsp;&nbsp; <b class="text-info">if department is not in the list, <a style="text-decoration:underline;color:red" href="/estore/depts">register department</a></b>
+                                                    <oi-select oi-options="d.dept_name for d in depts track by d.id"
+                                                               ng-model="ddlDept"
+                                                               placeholder="Select Dept." ng-change="getSubUnit(ddlDept)" data-ng-required="rqDept" name="ddlDept">
+                                                    </oi-select>
+                                                    <span class="text-danger" ng-show="addItemForm.ddlDept.$invalid">required!</span>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="control-label">Units</label>&nbsp;&nbsp;<b class="text-info">if unit is not in the list, <a style="text-decoration:underline;color:red" href="/estore/dept_units">register unit</a></b>
+
+                                                    <oi-select oi-options="u.unit_name for u in units track by u.id"
+                                                               ng-model="ddlUnit"
+                                                               placeholder="Select unit" name="ddlUnit">
+                                                    </oi-select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="col-sm-10 col-md-offset-1 col-md-10 col-md-offset-1">
+                                                    <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                        <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px; font-weight:600">
+                                                            Requesting Staff Details
+                                                        </span>
+                                                    </div>
+                                                    <br />
+                                                </div>
+                                                <div class="form-group  has-feedback">
+                                                    <label class="control-label">Staff Name <span class="text-danger">*</span></label>&nbsp;&nbsp;<b class="text-info"> if staff name is not in the list, <a style="text-decoration:underline; color:red" href="/estore/CreateUser">register staff</a></b>
+                                                    <oi-select oi-options="s.name for s in Users track by s.id"
+                                                               ng-model="ddlStaff"
+                                                               placeholder="Select Name" ng-required="true" name="ddlStaff">
+                                                    </oi-select>
+                                                    <span class="text-danger" ng-show="addItemForm.ddlStaff.$invalid">required!</span>
+                                                </div>
+
+                                            </div>
+                                            <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                    <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px; font-weight:600">
+                                                        Items Details
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <br><br>
+                                                <label class="control-label">Items <span class="text-danger">*</span></label>
+                                                <oi-select oi-options="p.product_name for p in items track by p.id"
+                                                           ng-model="ddlItem"
+                                                           placeholder="Select Item" ng-change="getItemsDetails()" data-ng-required="true" name="ddlItem">
+                                                </oi-select>
+                                                <span class="text-danger" ng-show="addItemForm.ddlItem.$invalid">required!</span>
+                                            </div>
+                                            <div class="form-group has-feedback">
+                                                <label class="control-label">Qty. Available in Store <span class="text-danger">*</span></label>
+                                                <span ng-model="qty_avail_without_unit" hidden></span>
+                                                <input type="text" class="form-control" placeholder="Available quantity in store" name="qty_avail" ng-model="qty_avail" disabled />
+                                            </div>
+                                            <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                    <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px; font-weight:600">
+                                                        Quantity Requested
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <br /><br />
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label">Qty.Unit<span class="text-danger">*</span> <i class="glyphicon glyphicon-question-sign " title="(i.e. the unit in which this item is requested.)"></i></label>
+                                                    <select class="form-control" ng-model="ddlDemonination" ng-change="getDenomination(item_base_unit)" required name="ddlDemonination">
+                                                        <option value="">Select</option>
+                                                        <option value="piece(s)">piece(s)</option>
+                                                        <option value="pack(s)">pack(s)</option>
+                                                        <option value="carton(s)">carton(s)</option>
+                                                    </select>
+                                                    <span class="text-danger" ng-show="addItemForm.ddlDemonination.$invalid">Select Item Denomination</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label">Requested Qty. <span class="text-danger">*</span></label>
+                                                    <input type="number" ng-blur="Convert(base_unit,denom,items_id)" required class="form-control" placeholder="Qty. in {{denom}}" name="rq_qty_denom" ng-model="rq_qty_denom" min="0" />
+                                                    <span class="text-danger" ng-show="addItemForm.rq_qty_denom.$invalid">required!</span>
+                                                </div>
+                                            </div>
+                                            <br />
+                                            <br />
+                                            <div class="form-group">
+                                                <b ng-show="conversionNotFound" class="text-success">
+                                                    Cannot convert item from {{base_unit}} to {{denom}}. To setup conversion <a style="text-decoration:underline" href="/estore/converstionTable">Click here</a>.
+                                                </b>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label">Qty. Requested  <span class="text-danger">{{item_base_unit}} *</span> <span class="text-info" title="">(i.e. this is the smallest unit in which this item can be measured.)</span></label>
+                                                <input type="number" required disabled class="form-control" placeholder="Quantity Requested" name="qty_req" ng-model="qty_req" min="0" />
+                                                <span class="text-danger" ng-show="addItemForm.qty_req.$invalid">required!</span><br />
+
+                                            </div>
+
+                                            <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                    <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px; font-weight:600">
+                                                        Quatity Allocated
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <br /><br />
+                                            <div class="form-group">
+                                                <span hidden ng-model="item_base_unit"></span>
+                                                <label class="control-label">Qty. Allocated  <span class="text-danger">({{item_base_unit}})*</span></label>
+                                                <input type="number" required ng-blur="validate_gtyAllct_against_qtyAvail()" class="form-control" placeholder="Quantity allocated" name="qty_allct" ng-model="qty_allct" min="0" />
+                                                <span class="text-danger" ng-show="addItemForm.qty_allct.$invalid">required!</span><br />
+                                                <span class="text-danger">{{displayQtyError}}</span>
+                                            </div>
+                                            <div class="form-group has-feedback">
+                                                <label class="control-label">Requested Date</label> &nbsp; &nbsp;<pre>Selected date is: <em>{{rq_date | date:'fullDate' }}</em></pre>
+                                                <input type="text" required ng-model="rq_date" name="rq_date" placeholder="(dd/mm/yyyy)*" class="datepicker form-control" data-date-format="dd/mm/yyyy" />
+                                                <span class="text-danger" ng-show="addItemForm.rq_date.$invalid">required!</span><br />
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-xs-7">
+                                                    <button class="btn btn-success btn-block btn-flat" type="submit" ng-disabled="addItemForm.ddlState.$invalid ||
+ addItemForm.ddlStaff.$invalid || addItemForm.rqtype.$invalid ||addItemForm.SRV.$invalid||
+ addItemForm.ddlDept.$invalid||  addItemForm.ddlItem.$invalid ||
+ addItemForm.qty_req.$invalid ||
+ addItemForm.qty_allct.$invalid ||addItemForm.rq_date.$invalid||addItemForm.convert_master_to_base.$invalid
+                                                   ||addItemForm.rq_qty_denom.$invalid ||addItemForm.rq_qty_denom.$invalid">
+                                                        Add to cart &nbsp;&nbsp; <i class="glyphicon glyphicon-shopping-cart"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <!-- /.col -->
+                                        </form>
+                                    </div>
+
+                                </div>
+                                <button class="btn btn-danger pull-right" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                                <!-- /.row -->
+                            </div>
+                            <!-- /.box-body -->
+                            <div class="box-footer">
+                                <b>All fields mark with (<span style="color:red">*</span>), are required!</b>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div ng-show="showUpdateItemForm" class="panel panel-info">
+                    <div class="panel-body">
+                        <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                        <span style="font-size:12pt" class="text-danger">kindly, <a style="text-decoration:underline" href="/estore/fresh_request">click here</a> to view newly created request.</span>
+                        <br /><br />
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">UPDATE ITEM(S) REQUEST</h3> <br />
+                                <b>All fields mark with (<span style="color:red">*</span>), are required!</b>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>*@
+                                </div>
+                            </div>
+                            <!-- /.box-header -->
+                            <div class="box-body">
+                                <div class="panel panel-default">
+                                    <div class="panel-body">
+                                        <form id="UpdateItemForm" name="UpdateItemForm" novalidate ng-submit="UpdateItemToCart()">
+                                            <!-- /.col -->
+                                            <span ng-model="c_id" hidden> </span>
+                                            <div class="form-group">
+                                                <label class="control-label">Store Requisition No: <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" required placeholder="Store Requistion No." ng-blur="validateSRV()" name="SRV" ng-model="srv" />
+                                                <span class="text-danger" ng-show="UpdateItemForm.SRV.$invalid">required!</span>
+                                                <span class="text-danger">{{displayQtyError}}</span>
+                                            </div>
+
+                                            <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                    <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px;font-weight:600">
+                                                        Request Type
+                                                    </span>
+                                                </div>
+                                                <br>
+                                            </div>
+                                            <div class="form-group has-feedback">
+                                                <label class="control-label" style="font-size:12pt">Request Type <span class="text-danger">*</span></label> <br>
+                                                <select id="rqtype" ng-model="rqtype" ng-change="requestType()" name="rqtype" class="form-control" required>
+                                                    <option selected="selected" value="">Select request type</option>
+                                                    <option value="internalRequest">Internal Request</option>
+                                                    <option value="regionalRequest">Regional Request</option>
+                                                    <option value="stateRequest">State Request</option>
+                                                </select>
+                                                <span class="text-danger" ng-show="UpdateItemForm.rqtype.$invalid">required!</span>
+                                            </div>
+                                            @*States*@
+                                            <div ng-show="showState">
+                                                <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                    <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                        <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px;font-weight:600">
+                                                            Requesting State
+                                                        </span>
+                                                    </div>
+                                                    <br>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="control-label">State office <span class="text-danger">*</span></label>
+                                                    <oi-select oi-options="s.name for s in states track by s.id"
+                                                               ng-model="ddlState"
+                                                               placeholder="Select State Office" data-ng-required="rqState" name="ddlState">
+                                                    </oi-select>
+                                                    <span class="text-danger" ng-show="UpdateItemForm.ddlState.$invalid">Required!</span>
+                                                </div>
+                                                <br />
+                                                <div class="form-group">
+                                                    <label class="control-label text-green" style="font-size:12pt">Is request from state labouratory? <span class="text-danger"></span></label>
+                                                    <br />
+                                                    <input style="height:20px; width:20px" type="radio" ng-model="labRequest" name="labRequest" value="Yes" /> <span style="font-size:20px">Yes</span>
+                                                    <input style="height:20px; width:20px" type="radio" ng-model="labRequest" name="labRequest" value="No" ng-checked="true" /><span style="font-size:20px">No</span>
+                                                </div>
+                                            </div>
+                                            @*Regions*@
+                                            <div ng-show="showRegions">
+                                                <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                    <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                        <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px;font-weight:600">
+                                                            Requesting Region
+                                                        </span>
+                                                    </div>
+                                                    <br>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="control-label">Regional office <span class="text-danger">*</span></label>
+                                                    <select id="ddlRegion" class="form-control" ng-model="ddlRegion " name="ddlRegion" ng-required="rqRegion">
+                                                        <option selected="selected" value="">Select Regional office</option>
+                                                        <option value="North Central">North Central</option>
+                                                        <option value="North East">North East</option>
+                                                        <option value="North West">North West</option>
+                                                        <option value="South East">South East</option>
+                                                        <option value="South West">South West</option>
+                                                        <option value="South South">South South</option>
+                                                        @*ng-options="s.name for s in states"*@
+                                                    </select>
+                                                    <span class="text-danger" ng-show="UpdateItemForm.ddlRegion.$invalid">Required!</span>
+                                                </div>
+                                            </div>
+                                            @*Depts*@
+                                            <div ng-show="showDept">
+                                                <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                    <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                        <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px; font-weight:600">
+                                                            Requesting Department
+                                                        </span>
+                                                    </div>
+                                                    <br>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="control-label">Department <span class="text-danger">*</span></label>&nbsp;&nbsp; <b class="text-info">if department is not in the list, <a style="text-decoration:underline;color:red" href="/estore/depts">register department</a></b>
+                                                    <oi-select oi-options="d.dept_name for d in depts track by d.id"
+                                                               ng-model="ddlDept"
+                                                               placeholder="Select Dept." ng-change="getSubUnit(ddlDept)" data-ng-required="rqDept" name="ddlDept">
+                                                    </oi-select>
+                                                    <span class="text-danger" ng-show="UpdateItemForm.ddlDept.$invalid">required!</span>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="control-label">Units</label>&nbsp;&nbsp;<b class="text-info">if unit is not in the list, <a style="text-decoration:underline;color:red" href="/estore/dept_units">register unit</a></b>
+                                                    <oi-select oi-options="u.unit_name for u in units track by u.id"
+                                                               ng-model="ddlUnit"
+                                                               placeholder="Select unit" name="ddlUnit">
+                                                    </oi-select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="col-sm-10 col-md-offset-1 col-md-10 col-md-offset-1">
+                                                    <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                        <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px; font-weight:600">
+                                                            Requesting Staff Details
+                                                        </span>
+                                                    </div>
+                                                    <br />
+                                                </div>
+                                                <div class="form-group  has-feedback">
+                                                    <label class="control-label">Staff Name <span class="text-danger">*</span></label>&nbsp;&nbsp;<b class="text-info"> if staff name is not in the list, <a style="text-decoration:underline; color:red" href="/estore/CreateUser">register staff</a></b>
+                                                    <oi-select oi-options="s.name for s in Users track by s.id"
+                                                               ng-model="ddlStaff"
+                                                               placeholder="Select Name" data-ng-required="rqStaff" name="ddlStaff">
+                                                    </oi-select>
+                                                    <span class="text-danger" ng-show="UpdateItemForm.ddlStaff.$invalid">required!</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                    <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px; font-weight:600">
+                                                        Items Details
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <br><br>
+                                                <label class="control-label">Items <span class="text-danger">*</span></label>
+                                                <oi-select oi-options="p.product_name for p in items track by p.id"
+                                                           ng-model="ddlItem"
+                                                           placeholder="Select Item" ng-change="getItemsDetails()" data-ng-required="true" name="ddlItem">
+                                                </oi-select>
+                                                <span class="text-danger" ng-show="UpdateItemForm.ddlItem.$invalid">required!</span>
+                                            </div>
+                                            <div class="form-group has-feedback">
+                                                <span ng-model="qty_avail_without_unit" hidden></span>
+                                                <label class="control-label">Qty. Available in Store <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" placeholder="Available quantity in store" name="qty_avail" ng-model="qty_avail" disabled />
+                                            </div>
+                                            <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                    <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px; font-weight:600">
+                                                        Quantity Requested
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <br /><br />
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label">Qty.Unit<span class="text-danger">*</span> <i class="glyphicon glyphicon-question-sign " title="(i.e. the unit in which this item is requested.)"></i></label>
+                                                    <select class="form-control" ng-model="ddlDemonination" ng-change="getDenomination(item_base_unit)" required name="ddlDemonination">
+                                                        <option value="">Select</option>
+                                                        <option value="piece(s)">piece(s)</option>
+                                                        <option value="pack(s)">pack(s)</option>
+                                                        <option value="carton(s)">carton(s)</option>
+                                                    </select>
+                                                    <span class="text-danger" ng-show="UpdateItemForm.ddlDemonination.$invalid">Select Item Denomination</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label">Requested Qty. <span class="text-danger">*</span></label>
+                                                    <input type="number" ng-blur="Convert(base_unit,denom,items_id)" required class="form-control" placeholder="Qty. in {{denom}}" name="rq_qty_denom" ng-model="rq_qty_denom" min="0" />
+                                                    <span class="text-danger" ng-show="UpdateItemForm.rq_qty_denom.$invalid">required!</span>
+                                                </div>
+                                            </div>
+                                            <br />
+                                            <br />
+                                            <div class="form-group">
+                                                <b ng-show="conversionNotFound" class="text-success">
+                                                    Cannot convert item from {{base_unit}} to {{denom}}. To setup conversion <a style="text-decoration:underline" href="/estore/converstionTable">Click here</a>.
+                                                </b>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label">Qty. Requested  <span class="text-danger">{{item_base_unit}} *</span> <span class="text-info" title="">(i.e. this is the smallest unit in which this item can be measured.)</span></label>
+                                                <input type="number" required disabled class="form-control" placeholder="Quantity Requested" name="qty_req" ng-model="qty_req" min="0" />
+                                                <span class="text-danger" ng-show="UpdateItemForm.qty_req.$invalid">required!</span><br />
+
+                                            </div>
+
+                                            <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                                <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                                    <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px; font-weight:600">
+                                                        Quatity Allocated
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <br /><br />
+                                            <div class="form-group">
+                                                <span hidden ng-model="item_base_unit"></span>
+                                                <label class="control-label">Qty. Allocated  <span class="text-danger">({{item_base_unit}})*</span></label>
+                                                <input type="number" required ng-blur="validate_gtyAllct_against_qtyAvail()" class="form-control" placeholder="Quantity allocated" name="qty_allct" ng-model="qty_allct" min="0" />
+                                                <span class="text-danger" ng-show="UpdateItemForm.qty_allct.$invalid">required!</span><br />
+                                                <span class="text-danger">{{displayQtyError}}</span>
+                                            </div>
+                                            <div class="form-group has-feedback">
+                                                <label class="control-label">Requested Date</label> &nbsp; &nbsp;<pre>Selected date is: <em>{{rq_date | date:'fullDate' }}</em></pre>
+                                                <input type="text" required ng-model="rq_date" name="rq_date" placeholder="(dd/mm/yyyy)*" class="datepicker form-control" data-date-format="dd/mm/yyyy" />
+                                                <span class="text-danger" ng-show="UpdateItemForm.rq_date.$invalid">required!</span><br />
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-xs-7">
+                                                    <button class="btn btn-success btn-block btn-flat" type="submit" ng-disabled="UpdateItemForm.ddlState.$invalid ||
+ UpdateItemForm.ddlStaff.$invalid || UpdateItemForm.rqtype.$invalid ||UpdateItemForm.SRV.$invalid||
+ UpdateItemForm.ddlDept.$invalid||  UpdateItemForm.ddlItem.$invalid ||
+ UpdateItemForm.qty_req.$invalid ||
+ UpdateItemForm.qty_allct.$invalid ||UpdateItemForm.rq_date.$invalid||UpdateItemForm.convert_master_to_base.$invalid
+                                                   ||UpdateItemForm.rq_qty_denom.$invalid ||UpdateItemForm.rq_qty_denom.$invalid">
+                                                        Update Cart &nbsp;&nbsp; <i class="glyphicon glyphicon-shopping-cart"></i>
+                                                    </button>
+                                                </div>
+                                                <a href="/estore/create_item_request" class="btn btn-info">Cancel</a>
+                                            </div>
+                                            <!-- /.col -->
+                                        </form>
+                                    </div>
+
+                                </div>
+                                <button class="btn btn-danger pull-right" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                                <!-- /.row -->
+                            </div>
+                            <!-- /.box-body -->
+                            <div class="box-footer">
+                                <b>All fields mark with (<span style="color:red">*</span>), are required!</b>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div ng-show="showCart" class="col-md-7">
+                <div class="panel panel-info">
+                    <div class="panel-body">
+                        <div class="box box-success">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Cart &nbsp;&nbsp;&nbsp;<i class="glyphicon glyphicon-shopping-cart"></i></h3>
+
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>*@
+                                </div>
+                            </div>
+                            <!-- /.box-header -->
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-md-12 table-responsive">
+                                        <table st-table="sRqCart" st-safe-src="RqCart" class="table table-bordered table-striped" style="text-transform:capitalize">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="4" style="text-align:left; color:red;font-size:x-large">
+                                                        CART <i class="glyphicon glyphicon-shopping-cart"></i>
+                                                        <br />
+                                                        <span class="text-success">Store Requisition No: {{srv}}</span>
+                                                    </th>
+                                                    <th colspan="2">
+                                                        <input st-search="" class="form-control" placeholder="search ..." type="text" />
+                                                    </th>
+                                                </tr>
+                                                <tr>
+                                                    <th>SN</th>
+                                                    <th>
+                                                        Item Name
+                                                    </th>
+                                                    <th>
+                                                        Qty. Requested
+                                                    </th>
+                                                    <th>
+                                                        Qty. Allocated
+                                                    </th>
+                                                    <th>Request From</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="c in sRqCart">
+                                                    <td>{{$index + 1}}</td>
+                                                    <td>
+                                                        {{c.item_name}}
+                                                    </td>
+                                                    <td>
+                                                        {{c.requested_qty_unit_value|number}} {{c.requested_qty_unit|lowercase}}
+                                                    </td>
+                                                    <td>
+                                                        {{c.qty_Allocated|number}} {{c.item_base_unit|lowercase}}
+                                                    </td>
+                                                    <td>
+                                                        <span>
+                                                            {{c.state}}
+                                                        </span>
+                                                        <span>
+                                                            {{c.dept_name}}
+                                                        </span>
+                                                        <span>
+                                                            {{c.region}}
+                                                        </span>
+
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-warning" title="edit" ng-click="editItemFromCart(c.id)"><i class="glyphicon glyphicon-edit"></i></button>
+                                                        <button class="btn btn-danger" title="delete" ng-click="deleteItemFromCart(c.id)"><i class="glyphicon glyphicon-trash"></i></button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <td colspan="6" class="text-center">
+                                                        <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                        <button type="button" class="btn btn-success" title="proceed to checkout" ng-click="checkout(sRqCart[0].cart_id)" ng-show="checkoutBTN">Submit</button>
+                                    </div>
+                                </div>
+                                <!-- /.row -->
+                            </div>        <!-- /.box-body -->
+                            <div class="box-footer">
+                                List of items added to cart.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</section>
+
+@section scripts{
+    <script src="~/Scripts/sweetalert.min.js"></script>
+    <script src="~/Angular/Controllers/borrowRequestController.js"></script>
+    <script src="~/Angular/pageSelectDirective.js"></script>
+    <script src="~/Angular/state.js"></script>
+    <script src="~/Scripts/bootstrap-datepicker.js"></script>
+    <script>
+    $('.datepicker').datepicker({
+        autoclose: true,
+        todayHighlight: true
+    });
+    </script>
+}
+
+

@@ -1,0 +1,131 @@
+﻿@{
+    ViewBag.Title = "Register User";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Register Store Staff</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">Register Store Staff</li>
+    </ol>
+</section>
+<section class="content">
+    <div ng-controller="manageUserController" class="box box-default">
+        <div class="box-header with-border">
+            <h3 class="box-title">Staff Registration Form</h3>
+
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+            </div>
+
+        </div>
+        <div class="box-body">
+            <div class="col-xs-6 col-lg-offset-3">
+                <div class="panel panel-success">
+                    @*<div class="panel-heading">
+                            <div class="panel-title">
+                                <h3>Register New User</h3>
+                            </div>
+                        </div>*@
+                    <div class="panel-body">
+
+                        <form name="userForm" ng-submit="userRegForm()" novalidate>
+                            @*<div class="form-group has-feedback">
+                                    <label class="control-label">Staff Id</label>
+                                    <input type="text" ng-blur="checkStaffID()" required class="form-control" placeholder="Staff ID" name="Staffid" ng-model="staffid" />
+                                    <span class="glyphicon glyphicon-user form-control-feedback" ng-show="userForm.Staffid.$dirty && userForm.Staffid.$invalid"></span>
+                                    <b class="text-info">{{staffidexist}}</b><br />
+                                    <span class="text-danger" ng-show="userForm.Staffid.$error.required"> Staff ID is required!</span>
+
+                                </div>*@
+                            <div class="form-group has-feedback">
+                                <label class="control-label">First Name&nbsp; <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="First Name" name="fname" ng-model="fname" required />
+                                <span class="glyphicon glyphicon-user form-control-feedback" ng-show="userForm.fname.$dirty && userForm.fname.$invalid"></span>
+                                <span class="text-danger" ng-show="userForm.fname.$error.required">First Name is required!</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Last Name&nbsp;<span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="Last Name" name="lname" ng-model="lname" required />
+                                <span class="glyphicon glyphicon-user form-control-feedback" ng-show="userForm.lname.$dirty && userForm.lname.$invalid"></span>
+                                <span class="text-danger" ng-show="userForm.lname.$error.required">Last Name is required!</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Rank/Position</label>
+                                <input type="text" class="form-control" placeholder="Rank" name="rank" ng-model="rank" />
+                            </div>
+                            <div class="form-group has-feedback">
+                                    <label class="control-label">Role&nbsp; <span class="text-danger">*</span></label>@*&nbsp;&nbsp; if roles is not in the list, <a style="text-decoration:underline" href="/estore/roles">Add Role</a>*@
+                                    <select class="form-control" ng-model="ddlRole" required  name="ddlRole">
+                                        <option value="">Select Role</option>
+                                        <option ng-repeat="r in roles|orderBy:'name'" value="{{r.id}}">{{r.name}}</option>
+                                    </select>
+                                    <span class="glyphicon glyphicon-book form-control-feedback" ng-show="userForm.ddlRole.$dirty && userForm.ddlRole.$invalid"></span>
+                                    <span class="text-danger" ng-show="userForm.ddlRole.$error.required">Select role</span>
+                                </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Departments&nbsp; <span class="text-danger">*</span></label>&nbsp;&nbsp; if department is not in the list, <a style="text-decoration:underline" href="/estore/depts">register department</a>
+                               
+                                <oi-select oi-options="d.dept_name for d in depts track by d.id "
+                                           ng-model="ddlDept"
+                                           placeholder="Select Department" ng-required="true" name="ddlDept" ng-change="getSubUnit(ddlDept)">
+                                </oi-select>
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="userForm.ddlDept.$dirty && userForm.ddlDept.$invalid"></span>
+                                <span class="text-danger" ng-show="userForm.ddlDept.$error.required">Select department</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Units</label>&nbsp;&nbsp;if unit is not in the list, <a style="text-decoration:underline" href="/estore/dept_units">register unit</a>                                
+                                <oi-select oi-options="u.unit_name for u in units track by u.id "
+                                           ng-model="ddlUnit"
+                                           placeholder="Select Unit" ng-required="true" name="ddlUnit">
+                                </oi-select>
+                                @*<span class="glyphicon glyphicon-book form-control-feedback" ng-show="userForm.ddlDept.$dirty && userForm.ddlDept.$invalid"></span>
+                                    <span class="text-danger" ng-show="userForm.ddlDept.$error.required">Select item category</span>*@
+                            </div>
+                            @*<div class="form-group has-feedback">
+                                    <label class="control-label">Phone</label>
+                                    <input type="text" class="form-control" placeholder="Phone number" name="phone" ng-model="phone" />
+                                </div>*@
+                            @*<div class="form-group has-feedback">
+                                    <label class="control-label">Email</label>
+                                    <input type="email" required ng-blur="checkEmail()" class="form-control" placeholder="Email" name="email" ng-model="email" />
+                                    <span class="glyphicon glyphicon-envelope form-control-feedback" ng-show="userForm.email.$dirty && userForm.email.$invalid"></span>
+                                    <b class="text-info">{{emailexist}}</b><br />
+                                    <span class="text-danger" ng-show="userForm.email.$error.email">Invalid email</span>
+                                    <span class="text-danger" ng-show="userForm.email.$error.required">Email is required!</span>
+                                </div>*@
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <input class="btn btn-success btn-block btn-flat" type="submit" value="Register" ng-disabled="userForm.fname.$dirty && userForm.fname.$invalid ||
+userForm.ddlDept.$dirty && userForm.ddlDept.$invalid ||userForm.lname.$dirty && userForm.lname.$invalid
+                                           ||userForm.ddlRole.$dirty && userForm.ddlRole.$invalid">
+                                </div>
+                                <div class="col-xs-6">
+                                    <a style="text-decoration:underline" class="pull-right" href="/estore/view_eStoreUsers">Click here to View users</a>
+                                </div>
+                                <!-- /.col -->
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box-footer clearfix">
+            <button class="btn btn-danger pull-right" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+        </div>
+    </div>
+
+</section>
+@section scripts{
+    <script src="~/Scripts/sweetalert.min.js"></script>
+<script src="~/Angular/state.js"></script>
+    <script src="~/Angular/Controllers/manageUserController.js"></script>
+    <script src="~/Angular/pageSelectDirective.js"></script>
+}
+

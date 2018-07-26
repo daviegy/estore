@@ -1,0 +1,516 @@
+﻿@using SON_eStore.Models;
+@using System.Data.Entity
+@{
+    ViewBag.Title = "eStore Dashboard";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ApplicationDbContext db = new ApplicationDbContext();
+    int counter = 0;
+    var stocks = db.stock_in_items.ToList().OrderBy(o => o.supplied_date).Take(10).OrderByDescending(s => s.supplied_date);
+    int out_of_stock_items = 0;
+    int out_of_stock_items_percent;
+    int items_in_stock;
+    int items_in_stock_percent;
+    var f_items = db.store_requisition.Where(a => a.request_status == "Approved")
+                                       .GroupBy(i => i.product_id).Select(s => new
+                                       {
+                                           item_id = s.Key,
+                                           items = s.Select(c => new frequenttlyRequestedItem
+                                           {
+                                               // item_id = c.product_id,
+                                               item_name = c.product_name,
+                                               totalRequested = db.store_requisition.Where(p => p.product_id == c.product_id && p.request_status == "Approved").Sum(t => t.qty_allocated)
+                                           }).Distinct()
+                                       }).ToList().OrderByDescending(o => o.items.Max(m => m.totalRequested)).Take(10);
+    int fcounter = 0;
+}
+
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>index</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href=""><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">Dashboard</li>
+    </ol>
+</section>
+<!-- Main content -->
+<section class="content">
+    <!-- Info boxes -->
+    <div class="row">
+        <div class="col-md-3 col-sm-6 col-xs-12">
+            <a href="/estore/RecentRequest">
+                <div class="info-box">
+                    <span class="info-box-icon bg-aqua"><i class="glyphicon glyphicon-shopping-cart"></i></span>
+                    <div style="color:black" class="info-box-content">
+                        <span class="info-box-text">Total Request <br />Today</span>
+                        <span class="info-box-number">
+                            @{
+                                var totalRq = db.store_requisition.Where(d => DbFunctions.TruncateTime(d.Request_dt) == DbFunctions.TruncateTime(DateTime.Now)).GroupBy(k => k.R_order_no).Count();
+                                if (totalRq > 0)
+                                {
+                                    <span>@totalRq</span>
+                                }
+                                else
+                                { <span>0</span>}
+                            }<small></small>
+                        </span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+            </a>
+            <!-- /.info-box -->
+        </div>
+        <!-- /.col -->
+        <div class="col-md-3 col-sm-6 col-xs-12">
+            <a href="/estore/item_supplies_today">
+                <div style="color:black" class="info-box">
+                    <span class="info-box-icon bg-red"><i class="glyphicon glyphicon-download"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Total Supplies<br /> Today</span>
+                        <span class="info-box-number">
+                            @{
+                                var totalsp = db.stock_in_items.Where(d => DbFunctions.TruncateTime(d.supplied_date) == DbFunctions.TruncateTime(DateTime.UtcNow)).Count();
+                            }
+                            @totalsp
+                        </span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+            </a>
+            <!-- /.info-box -->
+        </div>
+        <!-- /.col -->
+        <!-- fix for small devices only -->
+        <div class="clearfix visible-sm-block"></div>
+        <div class="col-md-3 col-sm-6 col-xs-12">
+            <a href="/estore/categorylist">
+                <div class="info-box">
+                    <span class="info-box-icon bg-green"><i class="glyphicon glyphicon-list"></i></span>
+                    <div class="info-box-content" style="color:black">
+                        <span class="info-box-text">Category <br />Inventory</span>
+                        @{
+                            var category = db.category.Count();
+                        }
+                        <span class="info-box-number">@category</span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+            </a>
+
+            <!-- /.info-box -->
+        </div>
+        <!-- /.col -->
+        <div class="col-md-3 col-sm-6 col-xs-12">
+            <a href="/estore/items_In_Store">
+                <div class="info-box">
+                    <span class="info-box-icon bg-yellow"><i class="glyphicon glyphicon-list-alt"></i></span>
+                    <div class="info-box-content" style="color:black">
+                        <span class="info-box-text">Items <br />Inventory</span>
+                        @{
+                            var Total_items = db.product.Count();
+                        }
+                        <span class="info-box-number">@Total_items</span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+            </a>
+
+            <!-- /.info-box -->
+        </div>
+        <!-- /.col -->
+    </div>
+
+    <!-- Main row -->
+    <div class="row">
+        <!-- Left col -->
+        <div class="col-md-8">
+            <!-- /.row -->
+            <!-- TABLE: LATEST ORDERS -->
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Recently Requested Orders</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        @*  <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>*@
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="table-responsive">
+                        <table class="table no-margin">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Item</th>
+                                    <th>Request By</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+
+                                    var recent_item = db.store_requisition.OrderBy(r => Guid.NewGuid()).Take(10);
+                                    foreach (var r_item in recent_item.ToList())
+                                    {
+                                        DateTime rdt = Convert.ToDateTime(r_item.Created_Date);
+                                        var rts = DateTime.UtcNow.Day - rdt.Day;
+                                        if (rts <= 2)
+                                        {
+                                            <tr>
+                                                <td><a href="">@r_item.R_order_no</a></td>
+                                                <td>@r_item.product_name</td>
+                                                <td>
+                                                    @if (r_item.request_type == "internalRequest")
+                                                    {
+                                                        <span>@r_item.department</span>
+                                                    }
+                                                    else if (r_item.request_type == "stateRequest")
+                                                    {
+                                                        <span>@r_item.state_office</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>@r_item.regional_office region</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (r_item.request_status.ToLower() == "approved")
+                                                    {
+                                                        <span class="label label-success">Approved</span>
+                                                    }
+                                                    else if(r_item.request_status.ToLower() == "fresh")
+                                                    {
+                                                        <span class="label label-info">Fresh</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="label label-warning">Pending</span>
+                                                    }
+
+                                                </td>
+
+                                            </tr>
+                                        }
+                                    }
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.table-responsive -->
+                </div>
+                <!-- /.box-body -->
+                <div class="box-footer clearfix">
+                    <a href="/estore/create_item_request" class="btn btn-sm btn-info btn-flat pull-left">Place New Order &nbsp;&nbsp;<i class="glyphicon glyphicon-plus"></i></a> &nbsp;&nbsp;&nbsp;&nbsp;
+                   
+                    <a href="/estore/RecentRequest" class="btn btn-sm btn-danger btn-flat">View All &nbsp;&nbsp; <i class="glyphicon glyphicon-th-list"></i></a>
+                         
+                </div>
+                <!-- /.box-footer -->
+            </div>
+            <!-- /.box -->
+            <!-- TABLE: LATEST ORDERS -->
+            <div class="box box-warning">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Recently Stock-In Item</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>*@
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+
+                    <div class="table-responsive">
+                        <table class="table no-margin">
+                            <thead>
+                                <tr>
+                                    <th>SN</th>
+                                    <th>Item name</th>
+                                    <th>Supplier</th>
+                                    <th>Quatity</th>
+                                    <th>Date Supplied</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var st in stocks)
+                                {
+                                    counter++;
+                                    <tr>
+                                        <td><a href="">@counter</a></td>
+                                        <td>@st.product_name</td>
+                                        <td>@st.supplier_name</td>
+                                        <td><span class="label label-danger">@st.qty_supplied</span></td>
+                                        <td>
+                                            @{
+                                    var st_dt = Convert.ToDateTime(st.supplied_date).ToString("dd.MMM.yyy");
+                                            }@st_dt
+                                        </td>
+                                    </tr>
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.table-responsive -->
+                </div>
+                <!-- /.box-body -->
+                <div class="box-footer clearfix">
+                    <a href="/estore/item_supplies_rpt" class="btn btn-sm btn-default btn-flat pull-right">View Stock-In Items</a>
+                </div>
+                <!-- /.box-footer -->
+            </div>
+            <!-- /.box -->
+
+        </div>
+        <!-- /.col -->
+        <div class="col-md-4">
+            <!-- Info Boxes Style 2 -->
+            <a href="/estore/ros">
+                <div class="info-box bg-orange-active">
+                    <span class="info-box-icon"><i class="glyphicon glyphicon-hand-down"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Running-out-of-stock</span>
+                        @{
+                            int ros = db.product.Where(s => s.stock_reorder_alert_qty >= s.opening_stock_qty && s.opening_stock_qty > 0).Count();
+
+                            <span class="info-box-number">@ros</span>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: @ros%"></div>
+                            </div>
+
+
+                        }
+
+                        <span class="progress-description">
+                            items running out of stock
+                        </span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+            </a>
+
+            <!-- Info Boxes Style 2 -->
+            <a href="/estore/out_of_stock">
+                <div class="info-box bg-red-gradient">
+                    <span class="info-box-icon"><i class="glyphicon glyphicon-trash"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Out-of-Stock</span>
+                        @{
+
+                            if (Total_items != 0)
+                            {
+                                out_of_stock_items = db.product.Where(p => p.opening_stock_qty == 0).Count();
+                                out_of_stock_items_percent = (out_of_stock_items / Total_items) * 100;
+
+                                <span class="info-box-number">@out_of_stock_items</span>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width: @out_of_stock_items%"></div>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="info-box-number">0</span>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width:0%"></div>
+                                </div>
+                            }
+                        }
+
+                        <span class="progress-description">
+                            items that has been exhausted
+                        </span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+            </a>
+
+            <!-- /.info-box -->
+            <a href="/estore/in_stock_items">
+                <div class="info-box bg-green">
+                    <span class="info-box-icon"><i class="glyphicon glyphicon-briefcase"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">In-Stock</span>
+                        @{
+                            if (Total_items != 0)
+                            {
+                                items_in_stock = Total_items - out_of_stock_items;
+                                items_in_stock_percent = (out_of_stock_items / Total_items) * 100;
+                                <span class="info-box-number">@items_in_stock</span>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width:@items_in_stock%"></div>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="info-box-number">0</span>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width: 0%"></div>
+                                </div>
+                            }
+                        }
+
+                        <span class="progress-description">
+                            Available items in stock
+                        </span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+            </a>
+
+            <div class="box box-default">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Frequently Requested Items Chart</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        @*  <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>*@
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="row">
+                        <div class="">
+                            <div class="chart-responsive">
+                                <canvas id="barChart" height="200" style="width:inherit"> </canvas>
+                            </div>
+                            <!-- ./chart-responsive -->
+                        </div>
+                        <!-- /.col -->
+                        <!-- /.col -->
+                    </div>
+                    <!-- /.row -->
+                </div>
+                <!-- /.box-body -->
+                <!-- /.footer -->
+            </div>
+
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Frequently Requested Items</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>*@
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="table-responsive">
+                        <table class="table no-margin">
+                            <thead>
+                                <tr>
+                                    <th>SN</th>
+                                    <th>Item name</th>
+                                    <th>Quatity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+
+                                }
+                                @foreach (var i in f_items)
+                                {
+                                    foreach (var p in i.items)
+                                    {
+                                        fcounter++;
+                                        <tr>
+                                            <td><a href="">@fcounter</a></td>
+                                            <td>@p.item_name</td>
+                                            <td><span class="label label-info">@p.totalRequested</span></td>
+                                        </tr>
+                                    }
+
+                                }
+
+
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.table-responsive -->
+                </div>
+                <!-- /.box-body -->
+                <!-- /.box-footer -->
+            </div>
+
+        </div>
+
+    </div>
+    <!-- /.col -->
+    <!-- /.row -->
+</section>
+
+@section scripts{
+    @*<script src="~/Scripts/Chart.min.js"></script>*@
+    <script>
+        var accessToken = sessionStorage.getItem('accessToken')
+        $.ajax({
+            type: "Get",
+            url: "api/items/frequentlyRequested/",
+            ContentType: "application/json; charset=utf-8",
+            dataType: "json",
+            headers: {
+                "Authorization": "Bearer " + accessToken
+            },
+            success: function (chData) {
+
+                var aData = chData;
+                var aLabels = [];
+                var aDatasets1 = [];
+                for (var i in chData) {
+                    aLabels.push(chData[i].item_name)
+                    aDatasets1.push(chData[i].totalRequested)
+                }
+                var dynamicColors = function () {
+                    var r = Math.floor(Math.random() * 255);
+                    var g = Math.floor(Math.random() * 255);
+                    var b = Math.floor(Math.random() * 255);
+                    return "rgb(" + r + "," + g + "," + b + ")";
+                }
+                var barChartData = {
+                    labels: aLabels,
+                    datasets: [
+                        {
+                            label: "My First dataset",
+                            fillColor: "#00a65a",
+                            strokeColor: "rgba(220,220,220,0.8)",
+                            highlightFill: "rgba(220,220,220,0.75)",
+                            highlightStroke: "rgba(220,220,220,1)",
+                            data: aDatasets1
+                        }
+                    ]
+                };
+                var ctx = document.getElementById("barChart").getContext("2d");
+                var barChartOptions = {
+                    responsive: true,
+                    title: { display: true, text: 'FREQUENTLY REQUESTED ITEMS' },
+                    legend: { position: 'bottom' },
+                    scales: {
+                        xAxes: [{ gridLines: { display: false }, display: true, scaleLabel: { display: false, labelString: '' } }],
+                        yAxes: [{ gridLines: { display: false }, display: true, scaleLabel: { display: false, labelString: '' }, ticks: { stepSize: 50, beginAtZero: true } }]
+                    }
+                };
+                window.myObjBar = new Chart(ctx).Bar(barChartData, barChartOptions);
+                var bars = myObjBar.datasets[0].bars;
+                for (i = 0; i < bars.length; i++) {
+                    var color = dynamicColors();
+                    bars[i].fillColor = color;
+
+                }
+                myObjBar.update(); //update the cahrt
+
+            }
+
+        })
+
+
+    </script>
+}

@@ -1,0 +1,262 @@
+﻿
+@{
+    ViewBag.Title = "converstionTable";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Conversion Table</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">Conversion Table</li>
+    </ol>
+</section>
+<section ng-controller="ConversionController" class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="col-md-5">
+                <div ng-show="showItemEntryForm" class="panel panel-danger">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <h3>ADD ITEM CONVERSION</h3>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <form name="conversionForm" ng-submit="saveconversion()" novalidate>
+                            <div class="form-group">
+                                <label class="control-label">Item Name<span class="text-danger">*</span></label>&nbsp;&nbsp;<span class="text-danger"> if item does not exist in store yet, <a href="/estore/items_in_store" style="text-decoration:underline">ADD ITEM</a></span>
+                               
+                                <oi-select oi-options="s.product_name for s in items track by s.id "
+                                           ng-model="ddlItem"
+                                           placeholder="Select Item" data-ng-required="true" name="ddlItem" ng-change="getItemUnit()">
+                                </oi-select> 
+                                <span class="text-danger" ng-show="conversionForm.ddlItem.$error.required">Select Items</span>
+                            </div>
+                            <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                    <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px; font-weight:600">
+                                        Setup Conversion
+                                    </span>
+                                </div>
+                            </div>
+                            <br /><br />
+                            <b class="text-success">
+                                How many qty. of the base unit equals to 1 of the master unit?
+                                (e.g. 500 piece(s) = 1 pack)
+                            </b>
+                            <br /><br />
+                            <div class="col-md-12">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Base Unit <span class="text-danger">*</span> <span class="glyphicon glyphicon-question-sign text-info" title=">(i.e. the smallest unit in which this item can be measured and given out, if requested.)"></span></label>
+                                        <input disabled type="text" ng-model="base_unit" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group ">
+                                        <label class="control-label">Base Unit Value <span class="text-danger">*</span></label>
+                                        <input type="number" min="1" class="form-control" placeholder="" required name="base_unit_val" ng-model="base_unit_val" />
+                                        <span class="text-danger" ng-show="conversionForm.base_unit_val.$invalid">Base Unit Value required</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Master Unit <span class="text-danger">*</span> <span class="glyphicon glyphicon-question-sign text-info" title="(i.e. the Largest unit in which this item can be measured and given out, if requested.)"></span></label>
+                                        <select class="form-control" ng-model="ddlMasterUnit" ng-change="setUpConversion(base_unit)" required name="ddlMasterUnit">
+                                            <option value="">Select</option>
+                                            <option value="piece(s)">piece(s)</option>
+                                            <option value="pack(s)">pack(s)</option>
+                                            <option value="carton(s)">carton(s)</option>
+                                        </select>
+                                        <span class="text-danger" ng-show="conversionForm.ddlMasterUnit.$invalid">Master Unit is Required</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group ">
+                                        <label class="control-label">Master Unit Value <span class="text-danger">*</span></label>
+                                        <input type="number" disabled value="1" class="form-control" placeholder="" required name="master_unit_val" ng-model="master_unit_val" />
+                                        <span class="text-danger" ng-show="conversionForm.master_unit_val.$invalid">Master Unit Value required</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <input class="btn btn-success btn-block btn-flat" type="submit" value="ADD CONVERSION" ng-disabled="conversionForm.item_name.$invalid ||
+conversionForm.ddlMasterUnit.$invalid ||
+conversionForm.master_unit_val.$invalid || conversionForm.base_unit_val.$invalid">
+
+                                </div>
+                                <!-- /.col -->
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div ng-show="showItemUpdateForm" class="panel panel-info">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <h3>UPDATE CONVERSION FOR ITEM</h3>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <form name="updateItemForm" ng-submit="updateconversion()" novalidate>
+                            <span hidden ng-model="c_id"></span>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Item Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="" name="item_name" disabled ng-model="item_name" required />                              
+                            </div>
+                            
+                            <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                    <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px; font-weight:600">
+                                        Setup Conversion
+                                    </span>
+                                </div>
+                            </div>
+                            <br /><br />
+                            <b class="text-success">
+                                How many qty. of the base unit equals to 1 of the master unit?
+                                (e.g. 500 piece(s) = 1 pack)
+                            </b>
+                            <br /><br />
+                            <div class="col-md-12">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Base Unit <span class="text-danger">*</span> <span class="glyphicon glyphicon-question-sign text-info" title=">(i.e. the smallest unit in which this item can be measured and given out, if requested.)"></span></label>
+                                        <input disabled type="text" ng-model="base_unit" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group ">
+                                        <label class="control-label">Base Unit Value <span class="text-danger">*</span></label>
+                                        <input type="number" min="1" class="form-control" placeholder="" required name="base_unit_val" ng-model="base_unit_val" />
+                                        <span class="text-danger" ng-show="updateItemForm.base_unit_val.$invalid">Base Unit Value required</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Master Unit <span class="text-danger">*</span> <span class="glyphicon glyphicon-question-sign text-info" title="(i.e. the Largest unit in which this item can be measured and given out, if requested.)"></span></label>
+                                        <select class="form-control" ng-model="ddlMasterUnit" ng-change="setUpConversion(base_unit)" required name="ddlMasterUnit">
+                                            <option value="">Select</option>
+                                            <option value="piece(s)">piece(s)</option>
+                                            <option value="pack(s)">pack(s)</option>
+                                            <option value="carton(s)">carton(s)</option>
+                                        </select>
+                                        <span class="text-danger" ng-show="updateItemForm.ddlMasterUnit.$invalid">Master Unit is Required</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group ">
+                                        <label class="control-label">Master Unit Value <span class="text-danger">*</span></label>
+                                        <input type="number" disabled value="1" class="form-control" placeholder="" required name="master_unit_val" ng-model="master_unit_val" />
+                                        <span class="text-danger" ng-show="updateItemForm.master_unit_val.$invalid">Master Unit Value required</span>
+                                    </div>
+                                </div>
+                            </div>                            
+                            <div class="row">
+                                <div class="col-xs-8">
+                                    <input class="btn btn-success btn-block btn-flat" type="submit" value="Update Conversion" ng-disabled="updateItemForm.item_name.$invalid ||
+ updateItemForm.master_unit_val.$invalid ||
+updateItemForm.base_unit_val.$invalid ||
+updateItemForm.ddlMasterUnit.$invalid">
+                                </div>
+                                <a href="/estore/items_In_Store" class="btn btn-info">Close</a>
+                                <!-- /.col -->
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-md-7">
+                <div class="panel panel-success">
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table st-table="sConversionTable" st-safe-src="conversionTable" class="table table-bordered table-striped" style="text-transform:capitalize">
+                                <thead>
+                                    <tr>
+                                        <th colspan="3" style="text-align:center; color:red;font-size:x-large">CONVERSION TABLE</th>
+                                        <th colspan="1">
+                                            <input st-search="" class="form-control" placeholder="search ..." type="text" />
+                                        </th>
+                                    </tr>
+                                    <tr style="word-wrap:break-word">
+                                        <th>SN</th>
+                                        <th>
+                                            Item Name
+                                        </th>
+                                        <th style="width:200px">
+                                           Conversion Translation
+                                        </th>
+                                        @*<th>
+                                            Master Unit Value
+                                        </th>
+                                        <th>
+                                            Base Unit
+                                        </th>
+                                        <th>
+                                            Base Unit Value<br />
+                                        </th>*@
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="word-wrap:break-word" ng-repeat="i in sConversionTable|orderBy:'product_name'">
+                                        <td>{{$index + 1}}</td>
+
+                                        <td>
+                                            {{i.item_name}}
+                                        </td>
+                                        <td style="width:200px">
+                                           {{i.master_unit_value}} {{i.master_unit}} = {{i.base_unit_value}} {{i.base_unit}}
+                                        </td>
+                                        @*<td>
+                                            
+                                        </td>
+                                        <td>
+                                            {{i.base_unit}}
+                                        </td>
+                                        <td>
+                                          
+                                        </td>*@
+                                        <td>
+                                            <button class="btn btn-warning" title="edit" ng-click="editItem(i.id)"><i class="glyphicon glyphicon-edit"></i></button>
+                                            @{
+                                                if (User.IsInRole("StoreAdmin"))
+                                                {
+                                                    <button class="btn btn-danger" title="delete" ng-click="delitem(i.id)"><i class="glyphicon glyphicon-trash"></i></button>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="4" class="text-center">
+                                            <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@section scripts{
+    <script src="~/Scripts/sweetalert.min.js"></script>
+    <script src="~/Angular/Controllers/ConversionController.js"></script>
+    <script src="~/Angular/pageSelectDirective.js"></script>
+
+}

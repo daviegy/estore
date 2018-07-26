@@ -1,0 +1,236 @@
+﻿@model IEnumerable<SON_eStore.Models.Stock_In_Items>
+
+@{
+    ViewBag.Title = "Store Supplies";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    int counter = 0;
+}
+
+
+<section class="content">
+    <div class="">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+
+            <ol class="breadcrumb">
+                <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i> Dashboard</a></li>
+
+                <li class="active">Store Supplies</li>
+            </ol>
+        </section>
+        <div class="pad margin no-print">
+            <div class="callout callout-info" style="margin-bottom: 0!important;">
+                <h4><i class="fa fa-info"></i> Note:</h4>
+                This page has been enhanced for printing. Click the print button at the bottom of the invoice to test.
+            </div>
+        </div>
+        <!-- Main content -->
+        <section class="invoice" id="printable">
+            <!-- title row -->
+            <div class="row">
+
+                <div class="col-md-12">
+                    <h2 class="page-header" style="text-align:center">
+                        <img src="~/Content/img/smallSonlogo.fw.png" /><b> Human Resource Management</b>
+                        <br />  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                        <span style=""> eStore Management System</span>
+                        <small class="pull-right">
+                            Date:
+                            @DateTime.UtcNow.ToString("dd MMM,yyy")
+                        </small>
+                    </h2>
+                </div>
+                <!-- /.col -->
+            </div>            <!-- info row -->
+            <!-- /.row -->
+            <div class="row invoice-info">
+                <div class="col-sm-4 invoice-col">
+                    <address>
+                        @if (ViewBag.sdt !="")
+                        {
+                           <span><b>From</b>:  @ViewBag.sdt</span>
+                            <br />
+                        }
+                        @if (ViewBag.edt != "")
+                        {
+                            <span><b>To</b>:  @ViewBag.edt</span>
+                            <br />
+                        }                       
+                   </address>
+                </div>
+                <!-- /.col -->
+                <!-- /.col -->
+                <div class="col-sm-4 invoice-col pull-right">
+                    <address>
+                        @if (ViewBag.spname != null)
+                        {
+                            <b>SUPPLIER:             @ViewBag.spname</b>
+                            <br>
+                            <b>ADDRESS:              @ViewBag.addr </b>
+                            <br>
+                            <b>EMAIL:                @ViewBag.email </b><br>
+                            <b>PHONE:                @ViewBag.phone </b><br>
+                        }
+                        @*<b>STORE RECEIPT NO: #@ViewBag.srv</b>*@
+                    </address>
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- Table row -->
+            <div class="row">
+                <div class="col-xs-12 table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th colspan="4">
+                                    <h3><b>STORE SUPPLIES</b></h3>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>SN</th>
+                                <th>SRV.No.</th>
+                                <th>ITEMS</th>
+                                <th>QTY. SUPPLIED</th>
+                                <th>QTY. SUPPLIED (in base unit)</th>
+                                <th>UNIT PRICE</th>
+                                <th>AMOUNT</th>                        
+                                </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                counter++;
+                                <tr>
+                                    <td>@counter</td>
+                                    <td>@item.s_r_v_no</td>
+                                    <td>@item.product_name</td>
+                                    <td>@String.Format("{0:n0}", item.qty_supplied) @item.qty_denomination</td>
+                                    <td>@String.Format("{0:n0}", item.qty_supplied_in_base_unit) @item.item_base_unit</td>
+                                    <td>&#8358;@item.unitPrice</td>
+                                    <td>
+                                        &#8358;@String.Format("{0:n}", item.Amount)
+
+                                    </td>
+
+                                </tr>
+                            }
+
+
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+            <div class="row">
+                <!-- accepted payments column -->
+                @*<div class="col-xs-6">
+                        <p class="lead">DISCLAIMER:</p>
+
+                        <p class="text-muted well well-sm no-shadow" style="margin-top: 10px;">
+                            1. Quantity allocated by store keeper can be reviewed by the store admin.<br />
+                            2. Kindly, note that quantity of items allocated is based on quantity available in store.<br />
+                            3. Only item approved by the store admin can be supply to the requesting department or state.
+                        </p>
+                    </div>*@
+                <!-- /.col -->
+                <div class="col-xs-6">
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <tr>
+                                <th colspan="2">
+
+
+                                </th>
+                            </tr>
+                            <tr>
+                                <th colspan="2">
+                                    Name & Signature:
+
+                                </th>
+                            </tr>
+                            <tr>
+                                <td colspan="2"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+            <!-- this row will not appear when printing -->
+            <div class="row no-print">
+                <div class="col-xs-12">
+                    <a class="btn btn-success pull-right" href="javascript:window.print()">Print <i class="glyphicon glyphicon-print"></i></a>
+                    @*<button id="print" type="button" class="btn btn-success pull-right">
+                            <i class="glyphicon glyphicon-print"></i> Print
+                        </button>*@
+                    <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+
+                </div>
+            </div>
+        </section>
+        <!-- /.content -->
+        <div class="clearfix"></div>
+    </div>
+
+</section>
+<!-- /.content-wrapper -->
+@section scripts{
+    @*<script src="~/Scripts/JqueryPrint/jquery.PrintArea.js_4.js"></script>
+        <script src="~/Scripts/JqueryPrint/core.js"></script>*@
+  @*  <script src="~/Scripts/jQuery.print.js"></script>*@
+    <script type='text/javascript'>
+    //$(function () {
+    //    $("#printable").find('#print').on('click', function () {
+    //        $.print("#printable");
+    //    });
+    //});
+
+        @*//alert(aDatasets1)
+    var data = @Html.Raw(Json.Encode(Model));
+         var aLabels = [];
+        var aDatasets1 = [];
+        for (var i in data) {
+            aLabels.push(data[i].product_name)
+            aDatasets1.push(data[i].qtyAvailable)
+        }
+       // alert(data)
+    var areaChartData = {
+        labels: aLabels,
+        datasets: [
+          {
+              label: "Store Items",
+              data: aDatasets1,
+              fillColor: "rgba(210, 214, 222, 1)",
+              strokeColor: "rgba(210, 214, 222, 1)",
+              pointColor: "rgba(210, 214, 222, 1)",
+              pointStrokeColor: "#c1c7d1",
+              pointHighlightFill: "#fff",
+              pointHighlightStroke: "rgba(220,220,220,1)",
+          }
+        ]
+    };
+    var barChartCanvas = $("#barChart").get(0).getContext("2d");
+    var barChart = new Chart(barChartCanvas);
+    var barChartData = areaChartData;
+    barChartData.datasets[0].fillColor = "#00a65a";
+    barChartData.datasets[0].strokeColor = "#00a65a";
+    barChartData.datasets[0].pointColor = "#00a65a";
+    var barChartOptions = {
+        responsive: true,
+        title: { display: true, text: 'CHART.JS DEMO CHART' },
+        legend: { position: 'bottom' },
+        scales: {
+            xAxes: [{ gridLines: { display: false }, display: true, scaleLabel: { display: false, labelString: '' } }],
+            yAxes: [{ gridLines: { display: false }, display: true, scaleLabel: { display: false, labelString: '' }, ticks: { stepSize: 50, beginAtZero: true } }]
+        }
+    };
+
+    barChartOptions.datasetFill = false;
+    barChart.Bar(barChartData, barChartOptions);*@
+    </script>
+}
+

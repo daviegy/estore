@@ -1,0 +1,97 @@
+﻿@model IEnumerable<SON_eStore.Models.frequenttlyRequestedItem>
+@{
+    ViewBag.Title = "chartindex";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>eStore Chart</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">eStore Chart</li>
+    </ol>
+</section>
+<section class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+         <div class="panel-heading">
+             <div class="panel-title">
+                 <h2>Frequently Requested Item of all time</h2>
+             </div>
+         </div>
+            <div class="panel panel-success">
+                <div class="panel-body">
+                    
+                    <div class="chart-responsive">
+                        <canvas id="barChart" style="width:inherit"> </canvas>
+                    </div>
+                    <div class="row no-print">
+                        
+                        <div class="col-xs-12">
+                            <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                            <a class="btn btn-info pull-right" href="javascript:window.print()">Print <i class="glyphicon glyphicon-print"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+</section>
+
+@section scripts{
+<script type='text/javascript'>
+        //alert(aDatasets1)
+    var data = @Html.Raw(Json.Encode(Model));
+         var aLabels = [];
+        var aDatasets1 = [];
+        for (var i in data) {
+            aLabels.push(data[i].item_name)
+            aDatasets1.push(data[i].totalRequested)
+        }
+        var dynamicColors = function () {
+            var r = Math.floor(Math.random() * 255);
+            var g = Math.floor(Math.random() * 255);
+            var b = Math.floor(Math.random() * 255);
+            return "rgb(" + r + "," + g + "," + b + ")";
+        }
+       // alert(data)
+    var areaChartData = {
+        labels: aLabels,
+        datasets: [
+          {
+              label: "Store Items",
+              data: aDatasets1,
+              fillColor: dynamicColors(),
+              strokeColor: "rgba(60,141,188,0.8)",
+              pointColor: "#3b8bba",
+              pointStrokeColor: "rgba(60,141,188,1)",
+              pointHighlightFill: "#fff",
+              pointHighlightStroke: "rgba(60,141,188,1)",
+          }
+        ]
+    };
+    var barChartCanvas = $("#barChart").get(0).getContext("2d");   
+   var barChartData = areaChartData;   
+    var barChartOptions = {
+        responsive: true,
+        title: { display: true, text: 'CHART' },
+        legend: { position: 'bottom' },
+        scales: {
+            xAxes: [{ gridLines: { display: false }, display: true, scaleLabel: { display: false, labelString: '' } }],
+            yAxes: [{ gridLines: { display: false }, display: true, scaleLabel: { display: false, labelString: '' }, ticks: { stepSize: 50, beginAtZero: true } }]
+        }
+    };
+    window.barChart = new Chart(barChartCanvas).Bar(barChartData, barChartOptions); 
+    var bars = barChart.datasets[0].bars;
+    for (i = 0; i < bars.length; i++) {
+        var color = dynamicColors();
+        bars[i].fillColor = color;
+
+    }
+    barChart.update();
+</script>
+
+}

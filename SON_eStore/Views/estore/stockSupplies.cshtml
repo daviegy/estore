@@ -1,0 +1,301 @@
+﻿@using Microsoft.AspNet.Identity;
+@using Microsoft.AspNet.Identity.EntityFramework;
+@using SON_eStore.Models;
+@{
+    ApplicationDbContext db = new ApplicationDbContext();
+    ViewBag.Title = "eStore Supplies";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    var user = db.Users.Find(User.Identity.GetUserId());
+}
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Store supplies</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">Store supplies</li>
+    </ol>
+</section>
+<section ng-controller="stockInController" class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">        
+            <div class="col-md-5">
+                <div ng-show="showItemEntryForm" class="panel panel-success">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <h3>RECEIVE SUPPLIES INTO STORE</h3>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <form name="createItemForm" ng-submit="addtocart()" novalidate>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Store Receipt Voucher No. <span class="text-danger">*</span></label>
+                                <input type="text" ng-model="SRV" required name="SRV" class="form-control" />
+                                <span class="text-danger" ng-show="createItemForm.SRV.$error.required">Store Receipt Voucher No. is required</span>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Supplier's Name <span class="text-danger">*</span></label>&nbsp;&nbsp;<span class="text-danger">if supplier does not exist yet, <a href="/estore/suppliers" style="text-decoration:underline">ADD SUPPLIER</a> to list</span>
+                                
+                                <oi-select oi-options="s.supplier_name for s in suppliers track by s.id "
+                                           ng-model="ddlSupplier"
+                                           placeholder="Select Supplier" data-ng-required="true" name="ddlSupplier">
+                                </oi-select>
+                                <span class="text-danger" ng-show="createItemForm.ddlSupplier.$error.required">Select Supplier</span>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Item Name <span class="text-danger">*</span></label>&nbsp;&nbsp;<span class="text-danger"> if item does not exist in store yet, <a href="/estore/items_in_store" style="text-decoration:underline">ADD ITEM</a></span>
+                               
+                                <oi-select oi-options="s.product_name for s in items track by s.id "
+                                           ng-model="ddlItem"
+                                           placeholder="Select Item" data-ng-required="true" name="ddlItem" ng-change="getItemUnit()">
+                                </oi-select>
+                                <span class="text-danger" ng-show="createItemForm.ddlItem.$error.required">Select Supplier</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Item Base Unit <span class="text-info glyphicon glyphicon-question-sign" title="this is the smallest unit of measurement in which this item can either be supplied to store or  requested from store."></span></label>
+                                <input disabled type="text" ng-model="base_unit" class="form-control" />
+                            </div>
+                                <div class="form-group">
+                                    <label class="control-label">Supplied Qty. Demonination<span class="text-danger">*</span> <i class="glyphicon glyphicon-question-sign " title="(i.e. the unit in which this item is supplied. Note, that this denomination can only be higher or equals to the base unit, but not less than the base unit.)"></i></label>
+                                    <select  class="form-control" ng-model="ddlDemonination" ng-change="getDenomination()" ng-disabled="ds_denomination" required name="ddlDemonination">
+                                        <option value="">Select</option>
+                                        <option value="piece(s)">piece(s)</option>
+                                        <option value="pack(s)">pack(s)</option>
+                                        <option value="carton(s)">carton(s)</option>
+                                    </select>
+                                    <span class="text-danger" ng-show="createItemForm.ddlDemonination.$invalid">Select Item Denomination</span>
+                                </div> 
+                                <div class="form-group">
+                                    <label class="control-label">Supplied Qty. Value <span class="text-danger">*</span></label>
+                                    <input type="number" ng-blur="Convert(base_unit,denom,items_id)" required class="form-control" placeholder="Supplied quantity value in {{denom}}" name="sp_qty_denom" ng-model="sp_qty_denom" min="0" />
+                                    <span class="text-danger" ng-show="createItemForm.sp_qty_denom.$invalid">required!</span>
+                                </div>
+                            <div class="form-group">
+                                <b ng-show="conversionNotFound" class="text-warning">
+                                  Cannot convert item from {{base_unit}} to {{denom}}. To setup conversion <a style="text-decoration:underline" href="/estore/converstionTable">Click here</a>.
+                                </b>
+                            </div>
+                         
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Total Quantity Supplied (in base unit) <span class="text-danger">*</span></label>
+                                <input disabled type="number" min="0" class="form-control" placeholder="" name="item_op_qty" ng-model="item_op_qty" required />
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="createItemForm.item_op_qty.$dirty && createItemForm.item_op_qty.$invalid"></span>
+                                <span class="text-danger" ng-show="createItemForm.item_op_qty.$error.required">Total quantity supplied is required!</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Unit Price</label>
+                                <input class="form-control" type="number" ng-model="unitPrice" placeholder="0" required name="price" min="0" value="0" step="0.01" title="Item Price" pattern="^\d+(?:\.\d{1,2})?$" />
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Total Amount (<small>per Item</small>) <span class="text-danger">*</span></label>
+                                <input class="form-control" type="number" required ng-model="totalAmount" value="Total Amount" placeholder="0"pattern="^\d+(?:\.\d{1,2})?$" name="price">
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Item Supplied Date</label> &nbsp; &nbsp;<pre>Selected date is: <em>{{supply_date | date:'fullDate' }}</em></pre>
+                                <input type="text" required ng-model="supply_date" name="supply_date" placeholder="(dd/mm/yyyy)*" class="datepicker form-control" data-date-format="dd/mm/yyyy" />
+                                <span class="text-danger" ng-show="createItemForm.supply_date.$error.required">Supplied date is required!</span>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <input class="btn btn-success btn-block btn-flat" type="submit" value="Add Cart" ng-disabled="createItemForm.ddlSupplier.$dirty && createItemForm.ddlSupplier.$invalid ||
+createItemForm.ddlItem.$dirty && createItemForm.ddlItem.$invalid ||
+                                           createItemForm.ddlDemonination.$dirty && createItemForm.ddlDemonination.$invalid ||
+
+createItemForm.sp_qty_denom.$dirty && createItemForm.sp_qty_denom.$invalid ||createItemForm.supply_date.$invalid">
+                                  
+                                </div>
+                                <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                                <!-- /.col -->
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+                <div ng-show="showItemUpdateForm" class="panel panel-info">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <h3>UPDATE SUPPLIES DETAILS</h3>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <form name="UpdateItemForm" ng-submit="updateItemForm()" novalidate>
+                            <span type="text" hidden  name="s_id" placeholder="" ng-model="s_id"></span>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Supplier's ID</label>
+                               <input type="text" class="form-control"  ng-model="SRV" name="SRV"/>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Supplier's Name <span class="text-danger">*</span></label>&nbsp;&nbsp;<span class="text-danger"> if supplier does not exist yet, <a href="/estore/suppliers" style="text-decoration:underline">ADD SUPPLIER</a> to list</span>
+                                <oi-select oi-options="s.supplier_name for s in suppliers track by s.id "
+                                           ng-model="ddlSupplier"
+                                           placeholder="Select Supplier" data-ng-required="true" name="ddlSupplier">
+                                </oi-select>                    
+                                <span class="text-danger" ng-show="UpdateItemForm.ddlSupplier.$error.required">Select Supplier</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Item Name <span class="text-danger">*</span></label>&nbsp;&nbsp;<span class="text-danger">if item does not exist in store yet, <a href="/estore/items_in_store" style="text-decoration:underline">ADD ITEM</a></span> 
+                                <oi-select oi-options="s.product_name for s in items track by s.id "
+                                           ng-model="ddlItem"
+                                           placeholder="Select Item" data-ng-required="true" name="ddlItem" ng-change="getItemUnit()">
+                                </oi-select>                          
+                                <span class="text-danger" ng-show="UpdateItemForm.ddlItem.$error.required">Select Supplier</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Item Base Unit <span class="text-info glyphicon glyphicon-question-sign" title="this is the smallest unit in which this item can be measured and given out, whenever it is requested."></span></label>
+                                <input disabled type="text" ng-model="base_unit" class="form-control" />
+                            </div>
+                            <div class="col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+                                <div style="width: 100%; height: 20px; border-bottom: 1px solid black; text-align: center">
+                                    <span style="font-size: 20px;background-color: #ffffff; padding: 0 10px; font-weight:600">
+                                        Quantity Supplied
+                                    </span>
+                                </div>
+                            </div>
+                            <br /><br />
+                            <div class="form-group">
+                                <label class="control-label">Supplied Qty. Demonination<span class="text-danger">*</span> <i class="glyphicon glyphicon-question-sign " title="(i.e. the unit in which this item is supplied. Note, that this denomination can only be higher or equals to the base unit, but not less than the base unit.)"></i></label>
+                                <select class="form-control" ng-disabled="ds_denomination" ng-model="ddlDemonination" ng-change="getDenomination()"  required name="ddlDemonination">
+                                    <option value="">Select</option>
+                                    <option value="piece(s)">piece(s)</option>
+                                    <option value="pack(s)">pack(s)</option>
+                                    <option value="carton(s)">carton(s)</option>
+                                </select>
+                                <span class="text-danger" ng-show="UpdateItemForm.ddlDemonination.$invalid">Select Item Denomination</span>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Supplied Qty. Value <span class="text-danger">*</span></label>
+                                <input type="number" ng-blur="Convert(base_unit,denom,items_id)" required class="form-control" placeholder="Supplied quantity value in {{denom}}" name="sp_qty_denom" ng-model="sp_qty_denom" min="0" />
+                                <span class="text-danger" ng-show="UpdateItemForm.sp_qty_denom.$invalid">required!</span>
+                            </div>
+                            <div class="form-group">
+                                <b ng-show="conversionNotFound" class="text-warning">
+                                    Cannot convert item from {{base_unit}} to {{denom}}. To setup conversion <a style="text-decoration:underline" href="/estore/converstionTable">Click here</a>.
+                                </b>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Total Quantity Supplied (in base unit) <span class="text-danger">*</span></label>
+                                <input disabled type="number" min="0" class="form-control" placeholder="" name="item_op_qty" ng-model="item_op_qty" required />
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="createItemForm.item_op_qty.$dirty && createItemForm.item_op_qty.$invalid"></span>
+                                <span class="text-danger" ng-show="UpdateItemForm.item_op_qty.$error.required">Total quantity supplied is required!</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Unit Price</label>
+                                <input class="form-control" type="number" ng-model="unitPrice" placeholder="0" required name="price" min="0" value="0" step="0.01" title="Item Price" pattern="^\d+(?:\.\d{1,2})?$" onblur="
+                                    this.parentNode.parentNode.style.backgroundColor="/^\d+(?:\.\d{1,2})?$/.test(this.value)?'inherit':'red'">
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Total Amount</label>
+                                <input class="form-control" type="number" ng-model="totalAmount" value="Total Amount" placeholder="0" name="price">
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Item Supplied Date</label> &nbsp; &nbsp;<pre>Selected date is: <em>{{supply_date | date:'fullDate' }}</em></pre>
+                                <input type="text" required ng-model="supply_date|date:'dd/MM/yyyy'" name="supply_date" placeholder="(dd/mm/yyyy)*" class="datepicker form-control" data-date-format="dd/mm/yyyy" />
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <input class="btn btn-success btn-block btn-flat" type="submit" value="Update Cart" ng-disabled="UpdateItemForm.ddlSupplier.$dirty && UpdateItemForm.ddlState.$invalid ||
+UpdateItemForm.ddlItem.$dirty && UpdateItemForm.ddlItem.$invalid ||
+                                            UpdateItemForm.supply_date.$dirty && UpdateItemForm.supply_date.$invalid ||
+UpdateItemForm.item_op_qty.$dirty && UpdateItemForm.item_op_qty.$invalid">
+                                </div>
+                                <!-- /.col -->
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+            <div ng-show="showCart" class="col-md-7">
+                <div class="panel panel-success">
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table st-table="stock_in" st-safe-src="stockincart" class="table table-bordered table-striped" style="text-transform:capitalize">
+                                <thead>
+                                    <tr>
+                                        <th colspan="5" style="text-align:center; color:red; font-size:x-large">                                     
+                                        CART <i class="glyphicon glyphicon-shopping-cart"></i>
+                                        </th>
+                                        <th colspan="2">
+                                            <input st-search="" class="form-control" placeholder="search ..." type="text" />
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            SN
+                                        </th>
+                                        <th>
+                                            Supplier Name
+                                        </th>
+                                        <th>
+                                            Product Name
+                                        </th>
+                                        <th>Qty. Supplied<br /> (in base unit)</th>
+                                       <th>Unit Price</th>
+                                        <th>Amount</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="s in stock_in|orderBy:'supplied_date'">
+                                        <td>{{$index + 1}}</td>
+                                        <td>
+                                            {{s.supplier}}
+                                        </td>
+                                        <td>
+                                            {{s.item_name}}
+                                        </td>
+                                        <td>
+                                            {{s.qty_supplied_in_base_unit|number}} {{s.item_base_unit}}
+                                        </td>
+                                        <td>
+                                            &#8358; {{s.unit_price|number:2}}
+                                        </td>
+
+                                        <td>&#8358;{{s.total_amount_per_item|number:2}}</td>
+                                        <td>
+                                            <button class="btn btn-warning" title="edit" ng-click="editItemFromCart(s.id)"><i class="glyphicon glyphicon-edit"></i></button>
+                                            <button class="btn btn-danger" title="delete" ng-click="deleteItemFromCart(s.id)"><i class="glyphicon glyphicon-trash"></i></button>
+
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="7" class="text-center">
+                                            <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <button type="button" class="btn btn-success" title="proceed to checkout" ng-click="checkout(stock_in[0].s_r_v_no)" ng-show="checkoutBTN">Submit</button>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+@section scripts{
+<script src="~/Scripts/sweetalert.min.js"></script>
+    <script src="~/Angular/Controllers/stockInController.js"></script>
+    <script src="~/Angular/pageSelectDirective.js"></script>
+    <script src="~/Scripts/bootstrap-datepicker.js"></script>
+    <script>
+        $('.datepicker').datepicker({
+            autoclose: true,
+            todayHighlight: true
+        });
+    </script>
+}
+
+
+
+
+
+
+

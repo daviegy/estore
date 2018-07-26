@@ -1,0 +1,243 @@
+﻿@using Microsoft.AspNet.Identity;
+@using Microsoft.AspNet.Identity.EntityFramework;
+@using SON_eStore.Models;
+@{
+    ViewBag.Title = "Registered Staff List";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ApplicationDbContext db = new ApplicationDbContext();
+    var user = db.Users.Find(User.Identity.GetUserId());
+   
+}
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Registered Staff List</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/Dashboard"><i class="fa fa-dashboard"></i> Dashboard</a></li>
+        <li class="active">Registered Staff List</li>
+    </ol>
+</section>
+<section ng-controller="manageUserController" class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="col-xs-9">
+                <div class="panel panel-success">
+                    <div class="panel-body">
+                       <a href="/estore/createuser" class="btn btn-info">Register Staff &nbsp;&nbsp;<i class="glyphicon glyphicon-plus"></i></a>
+                        <br /><br />
+                        <div class="table-responsive">
+                            <table st-table="sUsers" st-safe-src="Staffs" class="table table-bordered table-striped" style="text-transform:capitalize">
+                                <thead>
+                                    <tr>
+                                        <th colspan="6" style="text-align:center; color:red;font-size:x-large">REGISTERED STAFF LIST</th>
+                                        <th colspan="3">
+                                            <input st-search="" class="form-control" placeholder="search ..." type="text" />
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th>SN</th>
+                                        @*<th>
+                        Staff ID
+                    </th>*@
+                                        <th>
+                                            Name
+                                        </th>
+
+                                        <th>
+                                            Username
+                                        </th>
+                                        <th>
+                                            Rank
+                                        </th>
+                                        @*<th>
+                        Email
+                    </th>
+                    <th>
+                        Phone
+                    </th>*@
+                                        <th>
+                                            Dept./State/Region
+                                        </th>
+                                        <th>
+                                            Unit
+                                        </th>
+                                        <th></th>
+                                    </tr>
+
+                                </thead>
+                                <tbody>
+
+                                    <tr ng-repeat="c in sUsers|orderBy:'Fname'">
+                                        <td>{{$index + 1}}</td>
+                                        @*<td>
+                        {{c.staff_id}}
+                    </td>*@
+                                        <td ng-hide="">
+                                            {{c.name}}
+                                        </td>
+                                        <td>
+                                            {{c.username}}
+                                        </td>
+                                        <td>{{c.rank}}</td>
+                                        @*<td>
+                        {{c.email}}
+                    </td>
+                    <td>
+                        {{c.phone}}
+                    </td>*@
+                                        <td>
+                                            {{c.dept_name}}
+                                            {{c.stateOffice}}
+                                            {{c.regionalOffice}}
+                                        </td>
+                                        <td>{{c.unit_name}}</td>
+                                        <td>
+                                            <button class="btn btn-warning" title="edit" ng-click="editUsers(c.id)"><i class="glyphicon glyphicon-edit"></i></button>
+                                            @{
+                                                if (User.IsInRole("StoreAdmin"))
+                                                {
+                                                    <button class="btn btn-danger" title="delete" ng-click="delUser(c.id)"><i class="glyphicon glyphicon-trash"></i></button>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="9" class="text-center">
+                                            <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-3">
+                    <div ng-show="editForm" class="panel panel-warning">
+                        <div class="panel-heading">
+                            <div class="panel-title">
+                                <h3>Edit User Information</h3>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <form name="userForm" ng-submit="StaffEditForm()" novalidate>
+                                <input type="hidden" ng-hide="u_id" value="{{u_id}}" />
+                                @*<div class="form-group has-feedback">
+                <label class="control-label">Staff Id</label>
+                <input type="text"  required class="form-control" placeholder="Staff ID" name="Staffid" ng-model="staffid" />
+                <span class="glyphicon glyphicon-user form-control-feedback" ng-show="userForm.Staffid.$dirty && userForm.Staffid.$invalid"></span>
+                <span class="text-danger" ng-show="userForm.Staffid.$error.required">{{staffidexist}}Staff ID is required!</span>
+            </div>*@
+                                <div class="form-group has-feedback">
+                                    <label class="control-label">First Name</label>
+                                    <input type="text" class="form-control" placeholder="First Name" name="fname" ng-model="fname" required />
+                                    <span class="glyphicon glyphicon-user form-control-feedback" ng-show="userForm.fname.$dirty && userForm.fname.$invalid"></span>
+                                    <span class="text-danger" ng-show="userForm.fname.$error.required">First Name is required!</span>
+                                </div>
+                                <div class="form-group has-feedback">
+                                    <label class="control-label">Last Name</label>
+                                    <input type="text" class="form-control" placeholder="Last Name" name="lname" ng-model="lname" required />
+                                    <span class="glyphicon glyphicon-user form-control-feedback" ng-show="userForm.lname.$dirty && userForm.lname.$invalid"></span>
+                                    <span class="text-danger" ng-show="userForm.lname.$error.required">Last Name is required!</span>
+                                </div>
+                                <div class="form-group has-feedback">
+                                    <label class="control-label" style="font-size:12pt">Staff Type<span class="text-danger">*</span></label> <br>
+                                    <select id="Stafftype" ng-model="staffType" ng-change="StaffType()" name="Stafftype" class="form-control" required>
+                                        <option selected="selected" value="">Select request type</option>
+                                        <option value="internalStaff">Internal Staff</option>
+                                        <option value="regionalStaff">Regional Staff</option>
+                                        <option value="stateStaff">State Staff</option>
+                                    </select>
+                                    <span class="text-danger" ng-show="userForm.Stafftype.$invalid">required!</span>
+                                </div>
+                                @*States*@
+                                <div ng-show="showState">
+                                    <div class="form-group">
+                                        <label class="control-label">State office <span class="text-danger">*</span></label>
+                                        <oi-select oi-options="s.name for s in states track by s.id"
+                                                   ng-model="ddlState"
+                                                   placeholder="Select State Office" data-ng-required="rqState" name="ddlState">
+                                        </oi-select>
+                                        <span class="text-danger" ng-show="userForm.ddlState.$invalid">Required!</span>
+                                    </div>
+                                </div>
+                                @*Regions*@
+                                <div ng-show="showRegions">
+                                    <div class="form-group">
+                                        <label class="control-label">Regional office <span class="text-danger">*</span></label>
+                                        <select id="ddlRegion" class="form-control" ng-model="ddlRegion " name="ddlRegion" ng-required="rqRegion">
+                                            <option selected="selected" value="">Select Regional office</option>
+                                            <option value="North Central">North Central</option>
+                                            <option value="North East">North East</option>
+                                            <option value="North West">North West</option>
+                                            <option value="South East">South East</option>
+                                            <option value="South West">South West</option>
+                                            <option value="South South">South South</option>
+                                            @*ng-options="s.name for s in states"*@
+                                        </select>
+                                        <span class="text-danger" ng-show="userForm.ddlRegion.$invalid">Required!</span>
+                                    </div>
+                                </div>
+                                @*Depts*@
+                                <div ng-show="showDept">
+                                    <div class="form-group has-feedback">
+                                        <label class="control-label">Departments&nbsp; <span class="text-danger">*</span></label>&nbsp;&nbsp; if department is not in the list, <a style="text-decoration:underline" href="/estore/depts">register department</a>
+                                        <oi-select oi-options="d.dept_name for d in depts track by d.id "
+                                                   ng-model="ddlDept"
+                                                   placeholder="Select Department" ng-required="rqDept" name="ddlDept" ng-change="getSubUnit(ddlDept)">
+                                        </oi-select>
+                                        <span class="text-danger" ng-show="userForm.ddlDept.$error.required">Select department</span>
+                                    </div>
+                                    <div class="form-group has-feedback">
+                                        <label class="control-label">Units</label>&nbsp;&nbsp;if unit is not in the list, <a style="text-decoration:underline" href="/estore/dept_units">register unit</a>
+                                        <oi-select oi-options="u.unit_name for u in units track by u.id "
+                                                   ng-model="ddlUnit"
+                                                   placeholder="Select Unit" name="ddlUnit">
+                                        </oi-select>
+                                    </div>
+                                </div>
+                                <div class="form-group has-feedback">
+                                    <label class="control-label">Rank/Position</label>
+                                    <input type="text" class="form-control" placeholder="Rank" name="rank" ng-model="rank" />
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <button class="btn btn-success btn-block btn-flat" type="submit" value="Register" ng-disabled="userForm.fname.$invalid|| userForm.ddlState.$invalid || userForm.ddlDept.$invalid || userForm.ddlRegion.$invalid || userForm.lname.$invalid">
+                                            Update
+                                        </button>
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <a style="text-decoration:underline" class="pull-right" href="/estore/viewusers">Click here to View users</a>
+                                    </div>
+                                    <!-- /.col -->
+                                </div>
+
+                            </form>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+        </div>
+    </div>
+</section>
+
+
+
+@section scripts{
+    <script src="~/Scripts/sweetalert.min.js"></script>
+<script src="~/Angular/state.js"></script>
+    <script src="~/Angular/Controllers/manageUserController.js"></script>
+    <script src="~/Angular/pageSelectDirective.js"></script>
+
+}
+
+
+

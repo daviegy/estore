@@ -1,0 +1,128 @@
+﻿@model IEnumerable<SON_eStore.Models.Stock_In_Items>
+@using SON_eStore.Models;
+
+@{
+    ViewBag.Title = "Items Supplied Today";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    int counter = 0;
+}
+
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Store Supplies</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">Store Supplies</li>
+    </ol>
+</section>
+<section class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">          
+            <div class="panel panel-success">
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table id="table" class="table table-bordered table-striped" style="text-transform:capitalize">
+                            <thead>
+                                <tr>
+                                    <th colspan="6" style="text-align:center; color:red;font-size:x-large">
+                                        STORE SUPPLIES
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th>SN</th>
+                                    <th>
+                                        STOCK ID
+                                    </th>
+                                    <th>
+                                        ITEM NAME
+                                    </th>
+                                    <th>
+                                        QUANTITY SUPPLY
+                                    </th>
+                                    <th>
+                                        SUPPLIER
+                                    </th>
+                                    <th>
+                                        SUPPLIED DATE
+                                    </th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @foreach (var item in Model)
+                                {
+                                    counter++;
+                                    <tr>
+                                        <td>@counter</td>
+                                        <td>
+                                            @item.s_r_v_no
+                                        </td>
+                                        <td>
+                                            @item.product_name
+                                        </td>
+                                        <td>
+                                            @String.Format("{0:n0}", item.qty_supplied) @item.qty_denomination
+                                        </td>
+                                        <td>
+                                            @item.supplier_name
+                                        </td>
+                                        <td>
+                                            @{
+                                    var sdt = Convert.ToDateTime(item.supplied_date).ToString("dd MMM, yyy");
+                                            }
+                                            @sdt
+                                        </td>
+
+                                    </tr>
+
+                                }
+                            </tbody>
+                        </table>
+
+
+                    </div>
+                    <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+@section scripts{
+
+    <script src="~/Scripts/bootstrap-table.js"></script>
+    <script src="~/Scripts/bootstrap-datepicker.js"></script>
+    <script>
+        $(".input-daterange").datepicker({
+            format: "dd-mm-yyyy",
+            clearBtn: true,
+            autoclose: true,
+            //orientation: "bottom right",
+            todayHighlight: true
+
+        })
+        $('#table').bootstrapTable({
+
+            striped: true,
+            // cardView: true,
+            pagination: true,
+            pageSize: 15,
+            pageList: [15, 25, 50, 100, 200],
+            smartDisplay: false,
+            //showToggle: true,
+            search: true,
+            //showColumns: true,
+            //showRefresh: true,
+            //    border : true
+            //align: 'center',
+            //valign: 'bottom'
+
+        });
+    </script>
+}

@@ -1,0 +1,238 @@
+﻿@model IEnumerable<SON_eStore.Models.store_requisitionTb>
+@using SON_eStore.Models;
+
+@{
+    ViewBag.Title = "Items Requested Report";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    int counter = 0;
+    ApplicationDbContext db = new ApplicationDbContext();
+}
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Store Request Report</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">Store Request Report</li>
+    </ol>
+</section>
+<section class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="box box-warning">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Generate Report</h3>                   
+                    <button id="btnReset" type="reset" title="reset options" onclick="reset()" class="btn btn-warning col-lg-offset-8">Reset &nbsp;&nbsp;<i class="glyphicon glyphicon-adjust"></i></button>
+                    <button class="btn btn-danger pull-right" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                </div>
+                <div class="box-body">
+                   <div class="panel panel-default">
+                       <div class="panel-body">
+                           <form role="form" name="rptForm" method="post" action="/ExcelReport/Requested_iTem_RPT">
+                               @Html.AntiForgeryToken()
+                               <div class="row">
+                                   <div class="col-lg-6">
+                                       <label class="control-label" style="font-size:12pt">Date </label> <br>
+                                       <div class="input-daterange input-group" id="datepicker">
+                                           <input type="text" placeholder="Start Date(dd-mm-yyyy)" class="input-sm form-control" id="sdate" name="startdate" />
+                                           <span class="input-group-addon">to</span>
+                                           <input type="text" placeholder="End Date(dd-mm-yyyy)" class="input-sm form-control" id="edate" name="enddate" />
+                                       </div>
+                                   </div> 
+                                   <div class="col-lg-3">
+                                       <div class="form-group">
+                                           <label class="control-label" style="font-size:12pt">Department </label>
+                                           <select id="depts" name="dept" onchange="deptF()" class="form-control select2">
+                                               @{
+                                                   var depts = db.department.ToList();
+                                               }
+                                               <option selected="selected" value="">Select Dept.  </option>
+                                               @foreach (var d in depts)
+                                               {
+                                                   <option value="@d.id">@d.dept_name</option>
+                                               }
+                                           </select>
+
+                                       </div>
+                                   </div>
+                                   <div class="col-lg-2">
+                                       <div class="form-group">
+                                           <label class="control-label" style="font-size:12pt">State Office </label>
+                                           <select id="states" onchange="stateF()" name="state" class="form-control select2">
+                                               <option selected="selected" value="">Select State  </option>
+                                               @foreach (var st in ViewBag.state)
+                                               {
+                                                   <option value="@st.name">@st.name</option>
+                                               }
+                                           </select>
+
+                                       </div>
+                                   </div>                           
+                                   <div class="col-lg-3">
+                                       <div class="form-group">
+                                           <label class="control-label" style="font-size:12pt">Items</label>
+                                           <select id="items" onchange="itemF()" name="item" class="form-control select2">
+                                               <option selected="selected" value="">Select Item</option>
+                                               @foreach (var i in db.product.ToList())
+                                               {
+                                                   <option value="@i.id">@i.product_name</option>
+                                               }
+                                           </select>
+                                       </div>
+                                   </div>
+                                   <div class="col-lg-3">
+                                       <div class="form-group">
+                                           <label class="control-label" style="font-size:12pt">Region</label>
+                                           <select id="region" onchange="RegionF()" name="region" class="form-control">
+                                               <option selected="selected" value="">Select Region</option>
+                                               @foreach (var i in ViewBag.region)
+                                               {
+                                                   <option value="@i.id">@i.name</option>
+                                               }
+                                           </select>
+                                       </div>
+                                   </div>
+                                   <div class="col-lg-3">
+                                       <div class="form-group">
+                                           <label class="control-label" style="font-size:12pt">Request Type</label>
+                                           <select id="requestType" onchange="RTpyeF()" name="requestType" class="form-control">
+                                               <option selected="selected" value="">Select Request Type</option>
+                                               @foreach (var i in ViewBag.rtype)
+                                               {
+                                                   <option value="@i.id">@i.name</option>
+                                               }
+                                           </select>
+                                       </div>
+                                   </div>
+                               </div>
+
+                               <br />
+                               <button id="btnExport" title="Export to excel" type="submit" class="btn btn-success">Export to Excel &nbsp;<i class="glyphicon glyphicon-export "></i></button>                              
+                               <button id="btnPrint" title="Print" type="submit" formaction="/printrpt/Print_Request_Item_Rpt" class="btn btn-info">Print &nbsp;<i class="glyphicon glyphicon-print "></i></button>
+                           </form>
+                           
+                       </div>
+                   </div>
+                   
+                </div>
+            </div>
+            <div class="panel panel-success">
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table id="table" class="table table-bordered table-striped" style="text-transform:capitalize">
+                            <thead>
+                                <tr>
+                                    <th colspan="9" style="text-align:center; color:red;font-size:x-large">
+                                        STORE REQUEST HISTORY
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th>SN</th>
+                                    <th>
+                                        SRV
+                                    </th>
+                                    <th>
+                                        ITEM NAME
+                                    </th>
+                                    <th>DEPT/STATE/REGION</th>
+                                    <th>
+                                        QUANTITY REQUESTED
+                                    </th>
+                                    @*<th>
+                                        QUANTITY REQUESTED(in base unit)
+                                    </th>*@
+                                    <th>
+                                        QUANTITY APPROVED
+                                    </th>                                    
+                                    <th>
+                                        REQUESTED DATE
+                                    </th>
+                                    <th>APPROVED DATE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @foreach (var item in Model)
+                                {
+                                    counter++;
+                                    <tr>
+                                        <td>@counter</td>
+                                        <td>
+                                            @item.S_R_V_No
+                                        </td>
+                                        <td>
+                                            @item.product_name
+                                        </td>
+                                        <td>
+                                            <span>@item.department</span>
+                                            <span>@item.state_office</span>
+                                            <span>@item.regional_office</span>
+                                        </td>
+                                        <td>
+                                            @String.Format("{0:n0}",item.Requested_qty_unit_value) @item.Requested_qty_unit
+                                        </td>
+                                        @*<td>
+                                            @String.Format("{0:n0}", item.qty_requested) @item.item_base_unit
+                                        </td>*@
+                                        <td>@String.Format("{0:n0}", item.qty_allocated) @item.item_base_unit</td>
+                                        <td>
+                                            @{ var rqdt = Convert.ToDateTime(item.Request_dt).ToString("dd MMM,yyy");
+                                               var appdt = Convert.ToDateTime(item.Approve_dt).ToString("dd MMM, yyy");
+                                               }
+                                            @rqdt
+                                        </td>
+                                        <td>
+                                            @appdt
+                                        </td>
+
+                                    </tr>
+
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <button class="btn btn-danger pull-right" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+
+@section scripts{
+
+    <script src="~/Scripts/bootstrap-table.js"></script>
+    <script src="~/Scripts/bootstrap-datepicker.js"></script>
+<script src="~/Scripts/customScripts/request_item_rpt.js"></script>
+    <script>
+        $(".input-daterange").datepicker({
+            format: "dd-mm-yyyy",
+            clearBtn: true,
+            autoclose: true,
+            //orientation: "bottom right",
+            todayHighlight: true
+
+        })
+    $('#table').bootstrapTable({
+
+        striped: true,
+        // cardView: true,
+        pagination: true,
+        pageSize: 15,
+        pageList: [15, 25, 50, 100, 200],
+        smartDisplay: false,
+        //showToggle: true,
+        search: true,
+        //showColumns: true,
+        //showRefresh: true,
+        //    border : true
+        //align: 'center',
+        //valign: 'bottom'
+
+    });
+    </script>
+
+    }

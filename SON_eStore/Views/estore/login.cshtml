@@ -1,0 +1,126 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>eStore Login</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link href="../../Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="../../Content/font-awesome.min.css" rel="stylesheet" />
+    <link href="../../Content/ionicons.min.css" rel="stylesheet" />
+    <link href="../../Content/AdminLTE.css" rel="stylesheet" />
+    <link href="../../Content/iCheck/square/blue.css" rel="stylesheet" />
+    <link href="~/Content/img/favicon-96x96.png" rel="shortcut icon" />
+    <link href="~/Content/ngToast.min.css" rel="stylesheet" />
+    <link href="~/Content/sweetalert.min.css" rel="stylesheet" />
+</head>
+<body ng-app="myApp" class="hold-transition login-page">
+    <toast>
+
+    </toast>
+    <div ng-controller="loginController" class="login-box">
+        @*<div class="login-logo2">
+            <img src="~/Content/img/SON-Logo.png" />
+        </div>*@
+        <div class="login-logo">
+            <h1  style="color:#ff0000; margin-top:150px">
+            <b>
+                e-STORE LOGIN
+                </b></h1>
+        </div>
+        <!-- /.login-logo -->
+        <div class="login-box-body">
+            <p class="login-box-msg">Sign in to start your session</p>
+            <form ng-submit="submit()" name="loginForm" novalidate>
+                <div class="form-group has-feedback">
+                    <input type="text" class="form-control" name="Username" placeholder="username" ng-model="username" required>
+                    <span class="glyphicon glyphicon-envelope form-control-feedback" ng-show="loginForm.Username.$dirty && loginForm.Username.$invalid"></span>
+                    <span class="text-danger" ng-show="loginForm.Username.$error.required">Username is Required</span>
+                </div>
+                <div class="form-group has-feedback">
+                    <input type="password" class="form-control" placeholder="Password" name="Password" ng-model="password" required>
+                    <span class="glyphicon glyphicon-lock form-control-feedback" ng-show="loginForm.Password.$dirty && loginForm.Password.$invalid"></span>
+                    <span class="text-danger" ng-show="loginForm.Password.$error.required">Password is Required</span>
+                </div>
+                <div class="row">
+                    <!--<div class="col-xs-8">
+                <div class="checkbox icheck">
+                    <label>
+                        <input class="icheckbox_flat-blue" type="checkbox"> Remember Me
+                    </label>
+                </div>
+            </div>-->
+                    <!-- /.col -->
+                    <div class="col-xs-4">
+                        <button class="btn btn-success btn-block btn-flat" type="submit" ng-disabled="loginForm.Username.$dirty && loginForm.Username.$invalid ||
+loginForm.Password.$dirty && loginForm.Password.$invalid">
+                            Sign In
+                        </button>   
+                                          
+                    </div>
+                    <a href="#" onclick="fg()">Forgot password?</a>   
+                    <a class="pull-right" style="text-decoration:underline" href="/estore/landingpage">Go Home</a>
+                    <!-- /.col -->
+
+                </div>
+                <div class="row">
+                    <span class="text-danger text-center">{{ResponseErrors}}</span>
+                    <!--<div ng-show="ResponseErrors.show" class="alert alert-dismissable alert-success">
+
+            </div>-->
+                    <!--<span class="text-success">{{ResponseData}}</span>-->
+
+                </div>
+
+            </form>
+
+        </div>
+        <!-- /.login-box-body -->
+    </div>
+
+    <script src="../../Scripts/jquery-1.10.2.min.js"></script>
+    <script src="../../Scripts/js/bootstrap.min.js"></script>
+    @*<script src="../../Scripts/js/icheck.min.js"></script>
+    <script>
+        $(function () {
+            $("input[type='checkbox']").iCheck({
+                checkboxClass: 'icheckbox_square-blue',
+                radioClass: 'iradio_square-blue',
+                increaseArea: '20%' // optional
+            });
+        });
+    </script>*@
+
+    <script src="../../Scripts/js/app.min.js"></script>
+    @*<script src="~/Scripts/Chart.min.js"></script>*@
+    <script src="~/Angular/angular.js"></script> 
+    <script src="~/Angular/angular-animate.min.js"></script>
+    <script src="~/Angular/angular-sanitize.min.js"></script>
+    <script src="~/Angular/angular-touch.min.js"></script>
+    <script src="~/Angular/angular-cookies.min.js"></script>
+    <script src="~/Angular/ui-bootstrap-tpls-2.5.0.min.js"></script>
+    <script src="~/Angular/ngToast.min.js"></script>  
+    @*<script src="~/Angular/angular-chart.js"></script>*@
+    <script src="../Angular/myApp.js"></script>
+    <script src="../Angular/Controllers/loginController.js"></script>
+
+    <script src="~/Angular/elif.js"></script>
+    <script src="~/Angular/smart-table.js"></script>
+    <script src="~/Scripts/sweetalert.min.js"></script>
+    <script src="~/Scripts/select.min.js"></script>
+    <script src="~/Angular/oi.select/module.js"></script>
+    <script src="~/Angular/oi.select/directives.js"></script>
+    <script src="~/Angular/oi.select/filters.js"></script>
+    <script src="~/Angular/oi.select/services.js"></script>
+    <script>
+
+        function fg() {
+            swal("Kindly, contact system admin for password reset, thank you!")
+        }
+       
+    </script>
+</body>
+</html>

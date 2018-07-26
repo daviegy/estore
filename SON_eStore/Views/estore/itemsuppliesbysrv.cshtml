@@ -1,0 +1,69 @@
+﻿@model IEnumerable<SON_eStore.Models.Stock_In_Items>
+@{
+    ViewBag.Title = "View items Supplied to Store";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    int counter = 0;
+  //  decimal totalAmount = 0;
+}
+
+
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Store Supplies</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">Store Supplies</li>
+    </ol>
+</section>
+<section class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th colspan="6">
+                            <h3 class="text-success"><b>SUPPLIER: @ViewBag.spname </b></h3>
+                            <h4 class="text-danger"><b>STORE RECEIPT NO: #@ViewBag.srv</b></h4>
+                            <a href="/PrintRPT/Print_Fresh_Items_Supplied_by_srv/?srv=@ViewBag.srv" class="pull-right btn btn-warning" style="">Print</a>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>SN</th>
+                        <th>ITEMS</th>
+                        <th>QTY. SUPPLIED</th>
+                        <th>QTY. SUPPLIED (in base unit)</th>
+                        <th>UNIT PRICE</th>
+                        <th>AMOUNT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        counter++;
+                        <tr>
+                            <td>@counter</td>
+                            <td>@item.product_name</td>
+                            <td>@String.Format("{0:n0}", item.qty_supplied) @item.qty_denomination</td>
+                            <td>@String.Format("{0:n0}", item.qty_supplied_in_base_unit) @item.item_base_unit</td>
+                            <td>&#8358;@item.unitPrice</td>
+                            <td>
+                                &#8358;@String.Format("{0:n}", item.Amount)
+
+                            </td>
+
+                        </tr>
+                        //totalAmount += item.Amount;
+                    }
+
+                    @*<tr>
+                        <td colspan="5">TOTAL:</td>
+                        <td><b>&#8358;@String.Format("{0:n}", totalAmount)</b></td>
+                    </tr>*@
+                </tbody>
+            </table>
+            <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+        </div>
+    </div>
+</section>

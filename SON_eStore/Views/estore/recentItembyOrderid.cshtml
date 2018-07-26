@@ -1,0 +1,97 @@
+﻿@model IEnumerable<SON_eStore.Models.store_requisitionTb>
+@{
+    ViewBag.Title = "recentItembyOrderid";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Items Ordered</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">Items Ordered</li>
+    </ol>
+</section>
+
+<section  class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="col-md-12">
+                <div class="box box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Items Ordered</h3>
+
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            @*<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>*@
+                        </div>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-md-12 table-responsive">
+                                <table class="table table-bordered table-striped" style="text-transform:capitalize">
+                                    <thead>                                     
+                                        <tr>
+                                            
+                                            <th>SRV</th>
+                                            <th>
+                                                Item Name
+                                            </th>
+                                            <th>
+                                                Qty. Requested
+                                            </th>
+                                            <th>
+                                                Qty. Requested (in base unit)
+                                            </th>
+                                            <th>
+                                                Qty. Allocated (in base unit)
+                                            </th>
+                                         
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var items in Model)
+                                        {
+                                            <tr>
+                                                
+                                                <td>@items.S_R_V_No</td>
+                                                <td>
+                                                    @items.product_name
+                                                </td>
+                                                <td>
+                                                    @String.Format("{0:n0}", items.Requested_qty_unit_value) @items.Requested_qty_unit
+                                                </td>
+                                                <td>
+                                                   @String.Format("{0:n0}", items.qty_requested) @items.item_base_unit
+                                                </td>
+                                                <td>
+                                                    @String.Format("{0:n0}", items.qty_allocated) @items.item_base_unit
+
+                                                </td>
+                                                
+                                            </tr>
+                                        }
+                                       
+                                    </tbody>
+                                   
+                                </table>
+                                <button class="btn btn-danger pull-right" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                            </div>
+
+
+                        </div>                        <!-- /.row -->
+                    </div>        <!-- /.box-body -->
+                    <div class="box-footer">
+
+                    </div>
+                </div>
+            </div> 
+        </div>
+    </div>
+
+</section>
+
+

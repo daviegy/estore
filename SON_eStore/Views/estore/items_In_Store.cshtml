@@ -1,0 +1,280 @@
+﻿@model IEnumerable<SON_eStore.Models.products>
+@using Microsoft.AspNet.Identity;
+@using Microsoft.AspNet.Identity.EntityFramework;
+@using SON_eStore.Models;
+@{
+    ViewBag.Title = "eStore items";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";   
+}
+
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Items List</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">Items List</li>
+    </ol>
+</section>
+<section ng-controller="itemsController" class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="col-md-5">
+                <div ng-show="showItemEntryForm" class="panel panel-danger">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <h3>ADD ITEM(S) TO STORE</h3>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <form name="createItemForm" ng-submit="CreateItemForm()" novalidate>
+                           
+                            <div class="form-group">
+                                <label class="control-label">Item Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="" name="item_name" ng-model="item_name" required />
+                                <span class="text-danger" ng-show="createItemForm.item_name.$invalid">Item name is required</span>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Category <span class="text-danger">*</span></label>&nbsp;&nbsp; <a style="text-decoration:underline" href="/estore/categorylist">create category</a>
+                                @*<select class="form-control select2" id="ddlCategory" ng-model="ddlCategory" required name="ddlCategory">
+                                    <option value="">Select Category</option>
+                                    <option ng-repeat="c in categories|orderBy:'category_name'" value="{{c.id}}">{{c.category_name}}</option>
+                                </select>*@
+                                <oi-select oi-options="c.category_name for c in categories track by c.id "
+                                           ng-model="ddlCategory"                                           
+                                           placeholder="Select" data-ng-required="true" name="ddlCategory">
+                                </oi-select>
+                                
+                                <span class="text-danger" ng-show="createItemForm.ddlCategory.$invalid">Select item category</span>
+
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Item Description</label>
+                                <textarea class="form-control" placeholder="" name="item_desc" ng-model="item_desc"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Serial No:</label> <span class="text-danger">Kindly, supply if any?</span>
+                                <input type="text" class="form-control" placeholder="Item serial number, if any?" name="serial_no" ng-model="serial_no" />
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Is item in store? <span class="text-danger">*</span></label>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <span class="text-danger " ng-show="createItemForm.item_exist_in_store.$invalid">This field is required!</span>
+                                <br />
+                                <input  style="height:20px; width:20px" ng-change="rdchange(item_exist_in_store)" type="radio" value="yes" ng-model="item_exist_in_store" required name="item_exist_in_store" /><b style="font-size:14pt" class="text-success"> Yes</b>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <input  style="height:20px; width:20px" ng-change="rdchange(item_exist_in_store)" type="radio" value="no" ng-model="item_exist_in_store" required name="item_exist_in_store" /><b style="font-size:14pt" class="text-warning">No</b>
+
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Item Base Unit <span class="text-danger">*</span> <span class="text-info">(i.e. the smallest unit in which this item can be measured and given out, if requested.)</span></label>
+                                <select class="form-control" ng-model="ddlBaseUnit" ng-change="setUpConversion()" required name="ddlBaseUnit">
+                                    <option value="">Select</option>
+                                    <option value="piece(s)">piece(s)</option>
+                                    <option value="pack(s)">pack(s)</option>
+                                    <option value="carton(s)">carton(s)</option>
+                                </select>
+                                <span class="text-danger" ng-show="createItemForm.ddlBaseUnit.$invalid">Select Item Base Unit</span>
+                            </div>
+
+                            <div ng-show="item_op_stock">
+
+                                <div class="form-group">
+                                    <label class="control-label">Total Quantity(in based unit) <span class="text-danger">*</span></label>
+                                    <input type="number" min="0" class="form-control" placeholder="" name="item_op_qty" ng-model="item_op_qty" ng-required="yes_item_exist_in_store" />
+                                    <span class="text-danger " ng-show="createItemForm.item_op_qty.$invalid">Item opening quantity required</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group ">
+                                <label class="control-label">Re-order Quantity (in base unit)</label>
+                                <input type="number" min="0" class="form-control" placeholder="" required name="item_ro_qty" ng-model="item_ro_qty" />
+                                <span class="text-danger" ng-show="createItemForm.item_ro_qty.$invalid">Item reorder point required</span>
+
+                            </div>
+
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <input class="btn btn-success btn-block btn-flat" type="submit" value="Add Item" ng-disabled="createItemForm.item_name.$invalid ||
+createItemForm.ddlCategory.$invalid ||
+createItemForm.item_op_qty.$invalid ||
+createItemForm.item_ro_qty.$invalid || createItemForm.item_exist_in_store.$invalid">
+
+                                </div>
+                                <!-- /.col -->
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+                <div ng-show="showItemUpdateForm" class="panel panel-info">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <h3>Update Item</h3>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <form name="updateItemForm" ng-submit="UpdateItemForm()" novalidate>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Item ID</label>
+                                <input type="text" class="form-control" name="p_id" placeholder="" ng-model="pid" ng-disabled="pid">
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Item Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="" name="item_name" ng-model="item_name" required />
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="UpdateItemForm.item_name.$dirty && UpdateItemForm.item_name.$invalid"></span>
+                                <span class="text-danger" ng-show="UpdateItemForm.item_name.$error.required">Item name is required</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Category <span class="text-danger">*</span></label>                             
+                                <oi-select oi-options="c.category_name for c in categories track by c.id "
+                                           ng-model="ddlCategory"
+                                           placeholder="Select" data-ng-required="true" name="ddlCategory">
+                                </oi-select>
+
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="UpdateItemForm.ddlCategory.$dirty && UpdateItemForm.ddlCategory.$invalid"></span>
+                                <span class="text-danger" ng-show="UpdateItemForm.ddlCategory.$error.required">Select item category</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Item Description</label>
+                                <textarea class="form-control" placeholder="" name="item_desc" ng-model="item_desc"></textarea>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Serial No:</label> <span class="text-danger">Kindly, supply if any?</span>
+                                <input type="text" class="form-control" placeholder="Item serial number, if any?" name="serial_no" ng-model="serial_no" />
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Item Base Unit <span class="text-danger">*</span> <span class="text-info">(i.e. the smallest unit in which this item can be measured.)</span></label>
+                                <select class="form-control" ng-model="ddlBaseUnit" required name="ddlBaseUnit">
+                                    <option value="">Select</option>
+                                    <option value="piece(s)">piece(s)</option>
+                                    <option value="pack(s)">pack(s)</option>
+                                    <option value="carton(s)">carton(s)</option>
+                                </select>
+                                <span class="text-danger" ng-show="createItemForm.ddlBaseUnit.$invalid">Select Item Base Unit</span>
+
+                            </div>
+                            @{
+                                if (User.IsInRole("StoreAdmin"))
+                                {
+
+                                    <div class="form-group has-feedback">
+                                        <label class="control-label">Total Quantity (in base unit) <span class="text-danger">*</span></label>
+                                        <input type="number" min="0" class="form-control" placeholder="" name="item_op_qty" ng-model="item_op_qty" required />
+                                        <span class="glyphicon glyphicon-book form-control-feedback" ng-show="createItemForm.item_op_qty.$dirty && createItemForm.item_op_qty.$invalid"></span>
+                                        <span class="text-danger" ng-show="createItemForm.item_op_qty.$error.required">Item opening quantity required</span>
+                                    </div>
+                                }}
+
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Re-order Quantity (in base unit)</label>
+                                <input type="number" min="0" class="form-control" placeholder="" name="item_ro_qty" ng-model="item_ro_qty" />
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="createItemForm.item_ro_qty.$dirty && createItemForm.item_ro_qty.$invalid"></span>
+                                <span class="text-danger" ng-show="createItemForm.item_ro_qty.$error.required">Item reorder point required</span>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-8">
+                                    <input class="btn btn-success btn-block btn-flat" type="submit" value="Update Item" ng-disabled="updateItemForm.item_name.$dirty && updateItemForm.item_name.$invalid ||
+updateItemForm.ddlCategory.$dirty && updateItemForm.ddlCategory.$invalid ||
+updateItemForm.item_op_qty.$dirty && updateItemForm.item_op_qty.$invalid ||
+updateItemForm.item_ro_qty.$dirty && updateItemForm.item_ro_qty.$invalid">
+                                </div>
+                                <a href="/estore/items_In_Store" class="btn btn-info">Close</a>
+                                <!-- /.col -->
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-md-7">
+                <div class="panel panel-success">
+                    <div class="panel-body">
+                        <div class="table-responsive">                                 
+                            <table st-table="sitems" st-safe-src="items" class="table table-bordered table-striped" style="text-transform:capitalize">
+                                <thead>
+                                    <tr>
+                                        <th colspan="4" style="text-align:center; color:red;font-size:x-large">ITEMS LIST</th>
+                                    <th colspan="2">
+                                            <input st-search="" class="form-control" placeholder="search ..." type="text" />
+                                        </th></tr>
+                                    <tr style="word-wrap:break-word">
+                                        <th>SN</th>
+                                        
+                                        <th>
+                                            Item Name
+                                        </th>
+                                        @*<th>
+                                            Category
+                                        </th>*@
+                                        <th>
+                                           Total Qty<br /> (in base unit)
+                                        </th>
+                                        <th>
+                                            Reorder Qty<br /> (in base unit)
+                                        </th>
+                                        @*<th>
+                                            Description
+                                        </th>*@
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="word-wrap:break-word" ng-repeat="i in sitems|orderBy:'product_name'">
+                                        <td>{{$index + 1}}</td>
+                                       
+                                        <td>
+                                            {{i.product_name}}
+                                        </td>
+                                        @*<td>
+                                            {{i.category_name}}
+                                        </td>*@
+                                        <td>
+                                            {{i.qtyAvailable|number}} {{i.item_base_unit}}
+                                        </td>
+                                        <td>
+                                            {{i.qtyReorderAlertValue|number}} {{i.item_base_unit}}
+                                        </td>
+                                        @*<td>
+                                            {{i.desc}}
+                                        </td>*@
+                                        <td>
+                                            <button class="btn btn-warning" title="edit" ng-click="editItem(i.id)"><i class="glyphicon glyphicon-edit"></i></button>
+                                            @{
+                                                if (User.IsInRole("StoreAdmin"))
+                                                {
+                                                    <button class="btn btn-danger" title="delete" ng-click="delitem(i.id)"><i class="glyphicon glyphicon-trash"></i></button>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="6" class="text-center">
+                                            <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+@section scripts{
+    <script src="~/Scripts/sweetalert.min.js"></script>
+    <script src="~/Angular/Controllers/itemsController.js"></script>
+<script src="~/Angular/pageSelectDirective.js"></script>
+}
+
+
+

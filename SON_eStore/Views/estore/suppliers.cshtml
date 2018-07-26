@@ -1,0 +1,301 @@
+﻿@using Microsoft.AspNet.Identity;
+@using Microsoft.AspNet.Identity.EntityFramework;
+@using SON_eStore.Models;
+@{
+    ApplicationDbContext db = new ApplicationDbContext();
+    ViewBag.Title = "eStore suppliers";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    var user = db.Users.Find(User.Identity.GetUserId());
+}
+
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Suppliers</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/dashboard"><i class="fa fa-dashboard"></i>Dashboard</a></li>
+        <li class="active">Suppliers</li>
+    </ol>
+</section>
+<section ng-controller="suppliersController" class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="col-md-8">
+                <div class="panel panel-success">
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table st-table="ssuppliers" st-safe-src="suppliers" class="table table-bordered table-striped" style="text-transform:capitalize">
+                                <thead>
+                                    <tr>
+                                        <th colspan="4" style="text-align:center; color:red;font-size:x-large">SUPPLIER'S LIST</th>
+                                        <th>
+                                            <input st-search="" class="form-control" placeholder="search ..." type="text" />
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        @*<th>
+                                            Supplier ID
+                                        </th>*@
+                                        <th>
+                                            Supplier Name
+                                        </th>
+                                        <th>
+                                            Phone
+                                        </th>
+                                        <th>Email</th>
+                                        <th>
+                                            Address
+                                        </th>
+                                       
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="s in ssuppliers|orderBy:'supplier_name'">
+                                        @*<td>{{$index + 1}}</td>*@
+                                        @*<td>
+                                            {{s.id}}
+                                        </td>*@
+                                        <td>
+                                            {{s.supplier_name}}
+                                        </td>
+                                        <td>
+                                            {{s.phone_no}}
+                                        </td>
+                                        <td>
+                                            {{s.email|lowercase}}
+                                        </td>
+                                        <td>
+                                            {{s.address}}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-warning" title="edit" ng-click="editSupplier(s.id)"><i class="glyphicon glyphicon-edit"></i></button>
+                                            <button class="btn btn-info" title="view list of supplied items" ng-click="itemsbySupplier(s.id)"><i class="glyphicon glyphicon-th-list"></i></button>
+                                            @{
+                                                if (User.IsInRole("StoreAdmin"))
+                                                {
+                                                    <button class="btn btn-danger" title="delete" ng-click="delsupplier(s.id)"><i class="glyphicon glyphicon-trash"></i></button>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="5" class="text-center">
+                                            <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div ng-show="showItemEntryForm" class="panel panel-success">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <h3>ADD NEW SUPPLIER</h3>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <form name="createItemForm" ng-submit="CreateItemForm()" novalidate>
+                            @*<div class="form-group has-feedback">
+                                    <label class="control-label">Category ID</label>
+                                    <input type="text" class="form-control" name="Cat_id" placeholder="" ng-model="catid" ng-disabled="catid">
+                                </div>*@
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Supplier's Name&nbsp; <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="" name="supplier_name" ng-model="supplier_name" required />
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="createItemForm.supplier_name.$dirty && createItemForm.supplier_name.$invalid"></span>
+                                <span class="text-danger" ng-show="createItemForm.supplier_name.$error.required">supplier's name is required</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Phone&nbsp;  <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control"  placeholder="Phone" name="s_phone" ng-model="s_phone">
+                            </div>  
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Email&nbsp; <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control"  placeholder="email@email.com" name="s_email" ng-model="s_email">
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="createItemForm.s_email.$dirty && createItemForm.s_email.$invalid"></span>
+                                <span class="text-danger" ng-show="createItemForm.s_email.$error.email">Invalid email address.</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Address&nbsp; <span class="text-danger">*</span></label>
+                                <textarea class="form-control"  placeholder="" name="s_address" ng-model="s_address"></textarea>
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="createItemForm.s_address.$dirty && createItemForm.s_address.$invalid"></span>
+                                <span class="text-danger" ng-show="createItemForm.s_address.$error.required">Address is required.</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">State</label>
+                              
+                                <oi-select oi-options="s.name for s in states track by s.id"
+                                           ng-model="ddlState"
+                                           placeholder="Select State Office" name="ddlState">
+                                </oi-select>
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="createItemForm.ddlState.$dirty && createItemForm.ddlState.$invalid"></span>
+                                <span class="text-danger" ng-show="createItemForm.ddlState.$error.required">Select State</span>
+                            </div>
+                        
+                            <div class="form-group has-feedback">
+                                <label class="control-label">City</label>
+                                <input type="text" class="form-control" placeholder="city" name="s_city" ng-model="s_city">
+                            </div>          
+                           
+                           
+                            <div class="row">
+                                <div class="col-xs-4">
+                                    <input class="btn btn-success btn-block btn-flat" type="submit" value="Register" ng-disabled="createItemForm.supplier_name.$dirty && createItemForm.supplier_name.$invalid ||
+createItemForm.ddlState.$dirty && createItemForm.ddlState.$invalid ||
+createItemForm.s_email.$dirty && createItemForm.s_email.$invalid ||
+createItemForm.s_address.$dirty && createItemForm.s_address.$invalid">
+
+                                </div>
+                                <!-- /.col -->
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+
+                <div ng-show="showItemUpdateForm" class="panel panel-info">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <h3>UPDATE SUPPLIER DETAILS</h3>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <form name="UpdateItemForm" ng-submit="UpdateSupplierForm()" novalidate>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Supplier's ID</label>
+                                <input type="text" class="form-control" name="s_id" placeholder="" ng-model="s_id" ng-disabled="s_id">
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Supplier's Name&nbsp; <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="" name="supplier_name" ng-model="supplier_name" required />
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="UpdateItemForm.supplier_name.$dirty && UpdateItemForm.supplier_name.$invalid"></span>
+                                <span class="text-danger" ng-show="UpdateItemForm.supplier_name.$error.required">supplier's name is required</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Phone&nbsp; <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="Phone" name="s_phone" ng-model="s_phone">
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Email&nbsp; <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" placeholder="email@email.com" name="s_email" ng-model="s_email">
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="UpdateItemForm.s_email.$dirty && UpdateItemForm.s_email.$invalid"></span>
+                                <span class="text-danger" ng-show="UpdateItemForm.s_email.$error.email">Invalid email address.</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Address&nbsp; <span class="text-danger">*</span></label>
+                                <textarea class="form-control"  placeholder="" name="s_address" ng-model="s_address"></textarea>
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="UpdateItemForm.s_address.$dirty && UpdateItemForm.s_address.$invalid"></span>
+                                <span class="text-danger" ng-show="UpdateItemForm.s_address.$error.required">Address is required.</span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">State</label>
+                                <oi-select oi-options="s.name for s in states track by s.id"
+                                           ng-model="ddlState"
+                                           placeholder="Select State Office" name="ddlState">
+                                </oi-select>
+                                <span class="glyphicon glyphicon-book form-control-feedback" ng-show="UpdateItemForm.ddlState.$dirty && UpdateItemForm.ddlState.$invalid"></span>
+                                <span class="text-danger" ng-show="UpdateItemForm.ddlState.$error.required">Select State</span>
+                            </div>
+
+                            <div class="form-group has-feedback">
+                                <label class="control-label">City</label>
+                                <input type="text" class="form-control" placeholder="city" name="s_city" ng-model="s_city">
+                            </div>
+
+
+                            <div class="row">
+                                <div class="col-xs-4">
+                                    <input class="btn btn-success btn-block btn-flat" type="submit" value="Update" ng-disabled="UpdateItemForm.supplier_name.$dirty && UpdateItemForm.supplier_name.$invalid ||
+UpdateItemForm.ddlState.$dirty && UpdateItemForm.ddlState.$invalid ||
+UpdateItemForm.s_email.$dirty && UpdateItemForm.s_email.$invalid ||
+UpdateItemForm.s_address.$dirty && UpdateItemForm.s_address.$invalid">
+
+                                
+                                </div>
+                                <a href="/estore/suppliers" class="btn btn-info">cancel</a>
+                                <!-- /.col -->
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+                <div ng-show="showItemsSupplied" class="panel panel-danger">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            Items supplied by ' <b>{{supplierName|uppercase}}</b> '
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table st-table="sitems" st-safe-src="items" class="table table-bordered table-striped" style="text-transform:capitalize">
+                                <thead>
+                                    <tr>
+                                        <th>SN</th>
+                                        <th>
+                                            Item Name
+                                        </th>
+                                        <th>
+                                            Qty Supplied
+                                        </th>
+                                        <th>
+                                            Date
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-hide="showNoItem" ng-repeat="i in sitems|orderBy:'product_name'">
+                                        <td>{{$index + 1}}</td>
+                                        <td>
+                                            {{i.product_name}}
+                                        </td>
+                                        <td>
+                                            {{i.qty_supplied|number}}{{i.qty_denomination}}
+                                        </td>
+                                        <td>{{i.supplied_date|date}}</td>
+                                    </tr>
+                                    <tr ng-show="showNoItem">
+                                        <td colspan="4" style="color:red;text-transform:capitalize">{{noItem}}</td>
+                                    </tr>
+                                   
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="4" class="text-center">
+                                            <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            <a href="/estore/suppliers" class="btn btn-info">Close</a>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+</section>
+@section scripts{
+<script src="~/Scripts/sweetalert.min.js"></script>
+    <script src="~/Angular/Controllers/suppliersController.js"></script>
+<script src="~/Angular/state.js"></script>
+   <script src="~/Angular/pageSelectDirective.js"></script>
+}
+
+
+
+
+

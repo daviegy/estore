@@ -1,0 +1,140 @@
+﻿@using Microsoft.AspNet.Identity;
+@using Microsoft.AspNet.Identity.EntityFramework;
+@using SON_eStore.Models;
+@{
+    ViewBag.Title = "user roles";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ApplicationDbContext db = new ApplicationDbContext();
+    var user = db.Users.Find(User.Identity.GetUserId());   
+}
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>User Rank</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/Dashboard"><i class="fa fa-dashboard"></i> Dashboard</a></li>
+        <li class="active">User Role</li>
+    </ol>
+</section>
+<section ng-controller="rolesController" class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="col-md-8">
+                <div class="panel panel-success">
+                    <div class="panel-body">
+                        <form ng-submit="addRole()" name="roleForm" novalidate>
+                            <div class="input-group input-group-sm col-xs-7">
+                                <span class="input-group-btn">
+                                    <button ng-disabled="roleForm.RoleName.$dirty && roleForm.RoleName.$invalid" type="submit" class="btn btn-info btn-flat">Add Rank <i class="glyphicon glyphicon-plus"></i></button>
+                                </span>
+                                <input type="text" name="RoleName" required ng-model="RoleName" placeholder="Enter New Role Name" class="form-control" />
+                                <span class="glyphicon glyphicon-user form-control-feedback" ng-show="roleForm.RoleName.$dirty && roleForm.RoleName.$invalid"></span>
+                            </div>
+                        </form>
+                        <br /><br />
+                        <div class="table-responsive">
+                            <table st-table="sroles" st-safe-src="roles" class="table table-bordered table-striped" style="text-transform:capitalize">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2" style="text-align:center; color:red;font-size:x-large"> User Roles</th>
+                                        <th>
+                                            <input st-search="" class="form-control" placeholder="search ..." type="text" />
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th>SN</th>
+                                        <th>
+                                            Role Name
+                                        </th>
+                                        <th>
+                                        </th>
+                                    </tr>
+
+                                </thead>
+                                <tbody>
+
+                                    <tr ng-repeat="c in sroles|orderBy:'name'">
+                                        <td>{{$index + 1}}</td>
+                                        <td>
+                                            {{c.name}}
+                                        </td>
+                                        <td>
+                                            <div ng-if="{{c.name}} == StoreAdmin" >
+                                                <button class="btn btn-warning" title="edit" ng-click="editRole(c.id)"><i class="glyphicon glyphicon-edit"></i></button>
+                                                @{
+                                                    if (User.IsInRole("StoreAdmin"))
+                                                    {
+                                                        <button class="btn btn-danger" title="delete" ng-click="delRole(c.id)"><i class="glyphicon glyphicon-trash"></i></button>
+                                                    }
+                                                }
+                                            </div>
+                                            
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3" class="text-center">
+                                            <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div ng-show="editRoleForms" class="panel panel-danger">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <h3>Edit Role</h3>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <form name="editRoleForm" ng-submit="update()" novalidate>
+                            <div ng-hide="hideRoleID" class="form-group has-feedback">                               
+                                <input type="text" class="form-control" name="r_id" placeholder="" ng-model="r_id" ng-disabled="r_id">
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Role Name</label>
+                                <input type="text" class="form-control" placeholder="" name="r_name" ng-model="r_name" required>
+                                <span class="glyphicon glyphicon-envelope form-control-feedback" ng-show="editRoleForm.r_name.$dirty && editRoleForm.r_name.$invalid"></span>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <button class="btn btn-success btn-block btn-flat" type="submit" ng-disabled="editRoleForm.cat_Name.$dirty && editRoleForm.cat_Name.$invalid">
+                                        Update Roles
+                                    </button>
+                                </div>
+                                <!-- /.col -->
+
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+@section scripts{
+    <script src="~/Scripts/sweetalert.min.js"></script>
+    <script src="~/Angular/Controllers/rolesController.js"></script>
+    <script src="~/Angular/pageSelectDirective.js"></script>
+
+}
+
+
+
+
+

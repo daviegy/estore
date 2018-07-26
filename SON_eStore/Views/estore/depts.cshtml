@@ -1,0 +1,241 @@
+﻿@using Microsoft.AspNet.Identity;
+@using Microsoft.AspNet.Identity.EntityFramework;
+@using SON_eStore.Models;
+@{
+    ViewBag.Title = "S.O.N Departments";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ApplicationDbContext db = new ApplicationDbContext();
+    var user = db.Users.Find(User.Identity.GetUserId());
+    string s = System.Configuration.ConfigurationManager.AppSettings["MaxLevel"];
+    String EncryptId = SON_eStore.Customclasses.Cryptoclass.EncryptStringAES(user.UserName, s);
+    EncryptId = EncryptId.Replace("/", "$25");
+    EncryptId = EncryptId.Replace("+", "$24");
+}
+<section class="content-header">
+    <h1>
+        Dashboard
+        <small>Department List</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/estore/Dashboard"><i class="fa fa-dashboard"></i> Dashboard</a></li>
+        <li class="active">Department List</li>
+    </ol>
+</section>
+<section ng-controller="deptController" class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="col-xs-9">
+                <div class="panel panel-success">
+                    <div class="panel-body">
+                        <form ng-submit="CreateDept()" name="deptCreateForm" novalidate>
+                            <div class="input-group input-group-sm col-xs-7">
+                                <span class="input-group-btn">
+                                    <button ng-disabled="deptCreateForm.CreateDeptName.$dirty && deptCreateForm.CreateDeptName.$invalid" type="submit" class="btn btn-info btn-flat">Add Department <i class="glyphicon glyphicon-plus"></i></button>
+                                </span>
+                                <input type="text" name="CreateDeptName" required ng-model="CreateDeptName" placeholder="Enter Department Name" class="form-control" />
+                                <span class="glyphicon glyphicon-lock form-control-feedback" ng-show="catCreateForm.CreateDeptName.$dirty && catCreateForm.CreateDeptName.$invalid"></span>
+                            </div>
+                        </form>
+                        <br /><br />
+                        <div class="table-responsive">
+                            <table st-table="sdept" st-safe-src="dept" class="table table-bordered table-striped" style="text-transform:capitalize">
+                                <thead>
+                                    <tr>
+                                        <th colspan="5" style="text-align:center; color:red;font-size:x-large">DEPARTMENT LIST</th>
+                                        <th>
+                                            <input st-search="" class="form-control" placeholder="search ..." type="text" />
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th>SN</th>
+                                        <th>
+                                            ID
+                                        </th>
+                                        <th>
+                                            Name
+                                        </th>
+                                        <th>
+                                            No. of Registered Unit(s)
+                                        </th>
+                                        <th>
+                                            No. of Registered Staff(s)
+                                        </th>
+                                        <th>
+                                        </th>
+                                    </tr>
+
+                                </thead>
+                                <tbody>
+
+                                    <tr ng-repeat="c in sdept|orderBy:'dept_name'">
+                                        <td>{{$index + 1}}</td>
+                                        <td>
+                                            {{c.id}}
+                                        </td>
+                                        <td ng-hide="">
+                                            {{c.dept_name}}
+                                        </td>
+                                        <td>
+                                            {{c.reg_unit_size}}
+                                        </td>
+                                        <td>{{c.reg_staff_size}}</td>
+                                        <td>
+                                            <button class="btn btn-warning" title="edit" ng-click="editdept(c.id)"><i class="glyphicon glyphicon-edit"></i></button>
+
+                                            <button class="btn btn-info" title="view units in department" ng-click="getDeptUnits(c.id)"><i class="glyphicon glyphicon-list"></i></button>
+                                            <button class="btn btn-success" title="view staff in department" ng-click="getDeptStaffs(c.id)"><i class="ion ion-person-add"></i></button>
+                                            @{
+                                                if (User.IsInRole("StoreAdmin"))
+                                                {
+                                                    <button class="btn btn-danger" title="delete" ng-click="delDept(c.id)"><i class="glyphicon glyphicon-trash"></i></button>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="6" class="text-center">
+                                            <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div ng-show="deptForm" class="panel panel-warning">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <h3>Edit Department</h3>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <form name="deptForm" ng-submit="update()" novalidate>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Dept. ID</label>
+                                <input type="text" class="form-control" name="dept_id" placeholder="" ng-model="deptid" ng-disabled="deptid">
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label class="control-label">Dept. Name</label>
+                                <input type="text" class="form-control" placeholder="" name="deptname" ng-model="deptname" required>
+                                <span class="glyphicon glyphicon-envelope form-control-feedback" ng-show="deptForm.deptname.$dirty && deptForm.deptname.$invalid"></span>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-7">
+                                    <button class="btn btn-success btn-block btn-flat" type="submit" ng-disabled="deptForm.deptname.$dirty && deptForm.deptname.$invalid">
+                                        Update Dept
+                                    </button>
+                                </div>
+                                <!-- /.col -->
+
+                            </div>
+
+
+                        </form>
+                    </div>
+
+                </div>
+                @*units in a dept*@
+                <div ng-show="showDeptUnits" class="panel panel-info">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            Units in ' <b>{{dept_name|uppercase}}</b> ' deparment
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped" style="text-transform:capitalize">
+                                <thead>
+                                    <tr>
+                                        <th>SN</th>
+                                        <th>
+                                            Unit ID
+                                        </th>
+                                        <th>
+                                            Unit Name
+                                        </th>                                       
+                                    </tr>
+
+                                </thead>
+                                <tbody>
+                                    <tr ng-hide="showNoUnit" ng-repeat="i in Units|orderBy:'unit_name'">
+                                        <td>{{$index + 1}}</td>
+                                        <td>
+                                            {{i.id}}
+                                        </td>
+                                        <td>
+                                            {{i.unit_name}}
+                                        </td>
+                                    </tr>
+                                    <tr ng-show="showNoUnit">
+                                        <td colspan="4" style="color:red;text-transform:capitalize">{{noItem}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+                @*staff in a dept*@
+                <div ng-show="showDeptStaffs" class="panel panel-info">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            Staffs in ' <b>{{dept_name|uppercase}}</b> ' deparment
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped" style="text-transform:capitalize">
+                                <thead>
+                                    <tr>
+                                        <th>SN</th>
+                                        @*<th>
+                                            Staff ID
+                                        </th>*@
+                                        <th>
+                                            Name
+                                        </th>
+                                    </tr>
+
+                                </thead>
+                                <tbody>
+                                    <tr ng-hide="showNoStaff" ng-repeat="i in Staffs|orderBy:'name'">
+                                        <td>{{$index + 1}}</td>
+                                       
+                                        @*<td>{{i.staff_id}}</td>*@
+                                        <td>
+                                            {{i.name}}
+                                        </td>
+                                    </tr>
+                                    <tr ng-show="showNoStaff">
+                                        <td colspan="4" style="color:red;text-transform:capitalize">{{noItem}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</section>
+
+
+
+@section scripts{
+    <script src="~/Scripts/sweetalert.min.js"></script>
+    <script src="~/Angular/Controllers/deptController.js"></script>
+    <script src="~/Angular/pageSelectDirective.js"></script>
+
+}
+
+
+

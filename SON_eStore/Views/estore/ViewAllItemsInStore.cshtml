@@ -1,0 +1,93 @@
+﻿
+@{
+    ViewBag.Title = "ViewAllItemsInStore";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<section ng-controller="itemsController" class="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="panel panel-success">
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table st-table="sitems" st-safe-src="items" class="table table-bordered table-striped" style="text-transform:capitalize">
+                            <thead>
+                                <tr>
+                                    <th colspan="4" style="text-align:center; color:red;font-size:x-large">ITEMS LIST</th>
+                                    <th colspan="2">
+                                        <input st-search="" class="form-control" placeholder="search ..." type="text" />
+                                    </th>
+                                </tr>
+                                <tr style="word-wrap:break-word">
+                                    <th>SN</th>
+
+                                    <th>
+                                        Item Name
+                                    </th>
+                                    <th>
+                                        Category
+                                    </th>
+                                    <th>
+                                        Total Qty<br /> (in base unit)
+                                    </th>
+                                    <th>
+                                    Reorder Qty<br /> (in base unit)
+                                </th>
+                                    <th>
+                                        Description
+                                    </th>
+                                    @*<th></th>*@
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="word-wrap:break-word" ng-repeat="i in sitems|orderBy:'product_name'">
+                                    <td>{{$index + 1}}</td>
+
+                                    <td>
+                                        {{i.product_name}}
+                                    </td>
+                                    <td>
+                                        {{i.category_name}}
+                                    </td>
+                                    <td>
+                                        {{i.qtyAvailable|number}} {{i.item_base_unit}}
+                                    </td>
+                                    <td>
+                                    {{i.qtyReorderAlertValue|number}} {{i.item_base_unit}}
+                                </td>
+                                    <td>
+                                        {{i.desc}}
+                                    </td>
+                                    @*<td>
+                                        <button class="btn btn-warning" title="edit" ng-click="editItem(i.id)"><i class="glyphicon glyphicon-edit"></i></button>
+                                        @{
+                                            if (User.IsInRole("StoreAdmin"))
+                                            {
+                                                <button class="btn btn-danger" title="delete" ng-click="delitem(i.id)"><i class="glyphicon glyphicon-trash"></i></button>
+                                            }
+                                        }
+                                    </td>*@
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="6" class="text-center">
+                                        <div st-pagination="" st-items-by-page="itemsByPage" st-template="Template/pagination-custom.html"></div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <button class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-chevron-left"> </i>Go Back</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+@section scripts{
+    <script src="~/Scripts/sweetalert.min.js"></script>
+    <script src="~/Angular/Controllers/itemsController.js"></script>
+    <script src="~/Angular/pageSelectDirective.js"></script>
+}
